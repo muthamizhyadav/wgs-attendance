@@ -22,9 +22,21 @@ const deleteEmployerById = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const Addattendance_EveryDay = catchAsync(async (req, res) => {
+  const data = await EmployerService.Addattendance_EveryDay(req);
+  res.send(data);
+});
+
+const updateAttendance = catchAsync(async (req, res) => {
+  const data = await EmployerService.updateAttendance(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
   updateEmployerById,
   deleteEmployerById,
+  Addattendance_EveryDay,
+  updateAttendance,
 };

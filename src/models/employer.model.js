@@ -22,16 +22,24 @@ const EmployerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const EmployerAttendance = new mongoose.Schema({
-  _id: {
-    type: String,
-    default: v4,
+const EmployerAttendance = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    attendance: String,
+    empId: String,
+    leavetype: String,
+    reason: String,
+    date: String,
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
-  attendance: String,
-  empId: String,
-  leavetype: String,
-  reason: String,
-});
+  { timestamps: true }
+);
 
 const Employer = mongoose.model('employers', EmployerSchema);
 const Attendance = mongoose.model('employers', EmployerAttendance);

@@ -1,6 +1,6 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Employer } = require('../models/employer.model');
+const { Employer, Attendance } = require('../models/employer.model');
 
 const createEmployer = async (req) => {
   let body = req.body;
@@ -31,9 +31,38 @@ const deleteEmployerById = async (req) => {
   return { message: 'Deleted' };
 };
 
+// Attendance ManageMents Api's
+const Addattendance_EveryDay = (req) => {
+  return new Promise((resolve, reject) => {
+    let body = req.body;
+    let createAttPromises = body.map((element) => {
+      return Attendance.create(element);
+    });
+
+    Promise.all(createAttPromises)
+      .then(() => {
+        resolve('Attendance records created successfully.');
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+const updateAttendance = async (req) => {
+  let findAttById = await Attendance.findById(req.params.id);
+  if (!findAttById) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Attendance Not Found');
+  }
+  findAttById = await Attendance.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true });
+  return findAttById;
+};
+
 module.exports = {
   createEmployer,
   getAllEmployer,
   updateEmployerById,
   deleteEmployerById,
+  Addattendance_EveryDay,
+  updateAttendance,
 };
