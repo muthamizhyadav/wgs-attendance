@@ -15,6 +15,7 @@ const EmployerSchema = new mongoose.Schema(
     department: String,
     head: String,
     email: String,
+    dataOfBirth: String,
     phone: String,
     active: {
       type: Boolean,
