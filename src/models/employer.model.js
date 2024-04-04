@@ -8,15 +8,24 @@ const EmployerSchema = new mongoose.Schema(
       default: v4,
     },
     empName: String,
-    empId: String,
+    empId: {
+      type: String,
+      unique: true,
+    },
     dateOfJoining: String,
     gender: String,
     designation: String,
     department: String,
     head: String,
-    email: String,
+    email: {
+      type: String,
+      unique: true,
+    },
     dataOfBirth: String,
-    phone: String,
+    phone: {
+      type: String,
+      unique: true,
+    },
     active: {
       type: Boolean,
       default: true,
