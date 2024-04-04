@@ -9,3 +9,6 @@ router.route('/:id').put(EmployerController.updateEmployerById).delete(EmployerC
 
 router.route('/attendance').post(EmployerController.Addattendance_EveryDay);
 router.route('/attendance/:id').put(EmployerController.updateAttendance);
+
+
+module.exports = router

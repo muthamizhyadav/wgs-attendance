@@ -55,7 +55,7 @@ const EmployerAttendance = new mongoose.Schema(
 );
 
 const Employer = mongoose.model('employers', EmployerSchema);
-const Attendance = mongoose.model('employers', EmployerAttendance);
+const Attendance = mongoose.model('attendance', EmployerAttendance);
 
 module.exports = {
   Employer,
