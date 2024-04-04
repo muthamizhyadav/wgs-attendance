@@ -19,7 +19,7 @@ const EmployerSchema = new mongoose.Schema(
     phone: String,
     active: {
       type: Boolean,
-      default: v4,
+      default: true,
     },
   },
   { timestamps: true }
