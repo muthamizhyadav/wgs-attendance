@@ -33,6 +33,7 @@ const EmployerAttendance = new mongoose.Schema(
     leavetype: String,
     reason: String,
     date: String,
+    month: String,
     active: {
       type: Boolean,
       default: true,

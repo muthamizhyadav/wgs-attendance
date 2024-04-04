@@ -1,7 +1,7 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const { Employer, Attendance } = require('../models/employer.model');
-
+const moment = require('moment');
 const createEmployer = async (req) => {
   let body = req.body;
   let creation = await Employer.create(body);
@@ -33,10 +33,14 @@ const deleteEmployerById = async (req) => {
 
 // Attendance ManageMents Api's
 const Addattendance_EveryDay = (req) => {
+  const date = new Date();
+  let monthName = date.toLocaleString('default', { month: 'long' });
+  let currentDate = moment().format('DD-MM-YYYY');
+
   return new Promise((resolve, reject) => {
     let body = req.body;
     let createAttPromises = body.map((element) => {
-      return Attendance.create(element);
+      return Attendance.create({ ...element, ...{ month: monthName, date: currentDate } });
     });
 
     Promise.all(createAttPromises)
