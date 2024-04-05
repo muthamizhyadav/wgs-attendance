@@ -5,6 +5,10 @@ const moment = require('moment');
 
 const createEmployer = async (req) => {
   let body = req.body;
+  let findbyEmpId = await Employer.findOne({ empId: body.empId });
+  if (!findbyEmpId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, { message: "Employer Exist's" });
+  }
   let creation = await Employer.create(body);
   return creation;
 };
