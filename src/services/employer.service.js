@@ -2,6 +2,7 @@ const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const { Employer, Attendance } = require('../models/employer.model');
 const moment = require('moment');
+
 const createEmployer = async (req) => {
   let body = req.body;
   let creation = await Employer.create(body);
@@ -62,6 +63,19 @@ const updateAttendance = async (req) => {
   return findAttById;
 };
 
+const getAttendance = async (req) => {
+  let values = await Attendance.aggregate([
+    {
+      $match: {
+        _id: {
+          $ne: null,
+        },
+      },
+    },
+  ]);
+  return values;
+};
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -69,4 +83,5 @@ module.exports = {
   deleteEmployerById,
   Addattendance_EveryDay,
   updateAttendance,
+  getAttendance,
 };

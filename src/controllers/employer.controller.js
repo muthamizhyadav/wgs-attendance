@@ -32,6 +32,11 @@ const updateAttendance = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const getAttendance = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAttendance(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -39,4 +44,5 @@ module.exports = {
   deleteEmployerById,
   Addattendance_EveryDay,
   updateAttendance,
+  getAttendance,
 };
