@@ -37,6 +37,22 @@ const getAttendance = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const getEmployerById = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEmployerById(req);
+  res.send(data);
+});
+
+//
+const getEmployeeById = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEmployeeById(req);
+  res.send(data);
+});
+
+const gettodayReportCounts = catchAsync(async (req, res) => {
+  const data = await EmployerService.gettodayReportCounts(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -45,4 +61,7 @@ module.exports = {
   Addattendance_EveryDay,
   updateAttendance,
   getAttendance,
+  getEmployerById,
+  getEmployeeById,
+  gettodayReportCounts,
 };
