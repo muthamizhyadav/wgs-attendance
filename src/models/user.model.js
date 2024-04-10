@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
 const { v4 } = require('uuid');
+
 const userSchema = mongoose.Schema(
   {
     _id: {

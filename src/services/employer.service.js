@@ -185,6 +185,7 @@ const getEmployerById = async (req) => {
         as: 'Weekoffleave',
       },
     },
+
     {
       $lookup: {
         from: 'attendances',
@@ -201,6 +202,15 @@ const getEmployerById = async (req) => {
         foreignField: 'empId',
         pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Late' }] } }],
         as: 'Late',
+      },
+    },
+    {
+      $lookup: {
+        from: 'attendances',
+        localField: '_id',
+        foreignField: 'empId',
+        pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Absent' }] } }],
+        as: 'absent',
       },
     },
     {
@@ -223,6 +233,7 @@ const getEmployerById = async (req) => {
         halfleave: { $size: '$halfleave' },
         Late: { $size: '$Late' },
         totalleave: { $ifNull: ['$totalleave.total', 0] },
+        absent: { $size: '$absent' },
         sickandcasulaLeaves: { $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] },
         leaveLate: {
           $cond: {
@@ -289,13 +300,14 @@ const getEmployerById = async (req) => {
         sickleave: 1,
         casualLeave: 1,
         Weekoffleave: 1,
-        halfleave: 1,
+        halfleave: { $divide: ['$halfleave', 2] },
         Late: 1,
         totalleave: 1,
         sickandcasulaLeaves: 1,
         leaveLate: 1,
         // sickCasualmin:1,
-        LOP: { $add: ['$sickCasualmin', '$leaveLate'] },
+        absent: 1,
+        LOP: { $add: ['$sickCasualmin', '$leaveLate', '$absent'] },
       },
     },
   ]);
