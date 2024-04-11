@@ -48,7 +48,12 @@ const updateStudentbyId = async (req) => {
 // placement Modules
 
 const createPlacements = async (req) => {
-  const creation = await Placement.create(req.body);
+  let stds = [];
+  req.body.students.map((e) => {
+    let val = { id: e };
+    stds.push(val);
+  });
+  const creation = await Placement.create({ ...req.body, ...{ students: stds } });
   return creation;
 };
 
@@ -87,6 +92,30 @@ const updateCandStatusInPlaceMent = async (req) => {
   return findplacementById;
 };
 
+const getPlaceMentsById = async (req) => {
+  let placement = await Placement.findById(req.params.id);
+  if (!placement) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'PlaceMent Not Found');
+  }
+
+  let studentsId = [];
+
+  if (placement.students.length > 0) {
+    placement.students.map((e) => {
+      studentsId.push(e.id);
+    });
+  }
+
+  let getStudents = await Students.aggregate([
+    {
+      $match: {
+        _id: { $in: studentsId },
+      },
+    },
+  ]);
+  return getStudents;
+};
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -97,4 +126,5 @@ module.exports = {
   getplacement,
   updateplacementbyId,
   updateCandStatusInPlaceMent,
+  getPlaceMentsById,
 };

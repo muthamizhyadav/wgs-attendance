@@ -43,9 +43,14 @@ const updateplacementbyId = catchAsync(async (req, res) => {
   const data = await WhytapService.updateplacementbyId(req);
   res.send(data);
 });
-//
+
 const updateCandStatusInPlaceMent = catchAsync(async (req, res) => {
   const data = await WhytapService.updateCandStatusInPlaceMent(req);
+  res.send(data);
+});
+
+const getPlaceMentsById = catchAsync(async (req, res) => {
+  const data = await WhytapService.getPlaceMentsById(req);
   res.send(data);
 });
 
@@ -59,4 +64,5 @@ module.exports = {
   getplacement,
   updateplacementbyId,
   updateCandStatusInPlaceMent,
+  getPlaceMentsById,
 };
