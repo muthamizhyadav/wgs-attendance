@@ -79,7 +79,7 @@ const studentStatusSchema = new mongoose.Schema(
       default: 'Pending',
     },
   },
-  { timestamps: true }
+  { _id: false }
 );
 
 const PlacementSchema = mongoose.Schema(
@@ -98,8 +98,32 @@ const PlacementSchema = mongoose.Schema(
       type: String,
     },
     companyAddress: String,
-    students: [studentStatusSchema],
+    students: {
+      type: Array,
+      default: [],
+    },
     interviewDate: String,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const PlacementDetailsSchema = mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    placementId: {
+      type: String,
+    },
+    studentId: {
+      type: String,
+    },
+    status: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -109,5 +133,6 @@ const PlacementSchema = mongoose.Schema(
 const Admin = mongoose.model('whytapadmin', whyTapUserSchema);
 const Students = mongoose.model('students', StudentsSchema);
 const Placement = mongoose.model('placement', PlacementSchema);
+const PlacementDetails = mongoose.model('placementdetails', PlacementDetailsSchema);
 
-module.exports = { Admin, Students, Placement };
+module.exports = { Admin, Students, Placement, PlacementDetails };
