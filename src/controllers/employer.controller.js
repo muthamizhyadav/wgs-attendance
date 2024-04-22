@@ -11,6 +11,11 @@ const getAllEmployer = catchAsync(async (req, res) => {
   const data = await EmployerService.getAllEmployer(req);
   res.send(data);
 });
+const getAllEmployerAtten = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAllEmployerAtten(req);
+  res.send(data);
+});
+
 
 const updateEmployerById = catchAsync(async (req, res) => {
   const data = await EmployerService.updateEmployerById(req);
@@ -53,6 +58,17 @@ const gettodayReportCounts = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const getWeekoffById = catchAsync(async (req, res) => {
+  const data = await EmployerService.getWeekoffById(req);
+  res.send(data);
+});
+
+const createCompOff = catchAsync(async(req,res)=>{
+  const data = await EmployerService.createCompOff(req)
+  res.send(data);
+})
+
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -64,4 +80,7 @@ module.exports = {
   getEmployerById,
   getEmployeeById,
   gettodayReportCounts,
+  getAllEmployerAtten,
+  getWeekoffById,
+  createCompOff
 };

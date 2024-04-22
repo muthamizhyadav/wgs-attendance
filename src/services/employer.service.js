@@ -1,9 +1,10 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Employer, Attendance } = require('../models/employer.model');
+const { Employer, Attendance, CompOff } = require('../models/employer.model');
 const moment = require('moment');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const { aggregate } = require('../models/token.model');
+const { log } = require('winston');
 
 const createEmployer = async (req) => {
   let body = req.body;
@@ -15,11 +16,20 @@ const createEmployer = async (req) => {
   if (findbymail) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee E-mail Already Exist');
   }
+  let findbyOfmail = await Employer.findOne({ profEmail: body.profEmail });
+  if (findbyOfmail) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Employee official E-mail Already Exist');
+  }
   let findbyphone = await Employer.findOne({ phone: body.phone });
   if (findbyphone) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee Phone Number Already Exist');
   }
+  let findbyAlphone = await Employer.findOne({ alternatePhone: body.alternatePhone });
+  if (findbyAlphone) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Employee Alternate Phone Number Already Exist');
+  }
   let creation = await Employer.create(body);
+  // console.log(creation,req.body);
   return creation;
 };
 
@@ -83,6 +93,83 @@ const getAllEmployer = async (req) => {
       },
     },
   ]);
+  return getEmpl;
+};
+const getAllEmployerAtten = async (req) => {
+  const { dept, date, name, atten } = req.query;
+  console.log(req.query, 'query');
+  let deptSearch = { active: true };
+  let nameSearch = { active: true };
+  let attenSearch = { active: true };
+
+  if (dept && dept != 'null' && dept != '' && dept != null) {
+    deptSearch = { department: { $regex: dept, $options: 'i' } };
+  }
+
+  if (name && name != 'null' && name != '' && name != null) {
+    nameSearch = {
+      empName: { $regex: name, $options: 'i' },
+    };
+  }
+  if (atten && atten != 'null' && atten != '' && atten != null) {
+    console.log('if');
+    // attenSearch = {$regex:atten, $options:'i'}
+    attenSearch = { att: { $regex: atten, $options: 'i' } };
+  } else {
+    console.log('else');
+  }
+  console.log(atten, 'atten');
+  let currentDate = moment().format('YYYY-MM-DD');
+  if (date && date != 'null' && date != '' && date != null) {
+    currentDate = date;
+  }
+  console.log(currentDate, 'ssd');
+  const getEmpl = await Employer.aggregate([
+    {
+      $match: {
+        $and: [deptSearch, nameSearch],
+      },
+    },
+    {
+      $lookup: {
+        from: 'attendances',
+        localField: '_id',
+        foreignField: 'empId',
+        pipeline: [{ $match: { $and: [{ date: currentDate }] } }],
+        as: 'attendance',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$attendance',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        attendanceId: { $ifNull: ['$attendance._id', null] },
+        att: { $ifNull: ['$attendance.leavetype', 'Present'] },
+        empName: 1,
+        empId: 1,
+        email: 1,
+        phone: 1,
+        dataOfBirth: 1,
+        gender: 1,
+        dateOfJoining: 1,
+        designation: 1,
+        department: 1,
+        head: 1,
+        attendanceDate: '$attendance.date',
+        active: 1,
+      },
+    },
+
+    {
+      $match: attenSearch,
+    },
+  ]);
+  console.log(getEmpl, 'atten');
   return getEmpl;
 };
 
@@ -214,6 +301,34 @@ const getEmployerById = async (req) => {
       },
     },
     {
+      $lookup: {
+        from: 'attendances',
+        localField: '_id',
+        foreignField: 'empId',
+        pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Holiday' }] } }],
+        as: 'holiday',
+      },
+    },
+    {
+      $lookup: {
+        from: 'attendances',
+        localField: '_id',
+        foreignField: 'empId',
+        pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Work from home' }] } }],
+        as: 'wfh',
+      },
+    },
+    // {
+    //   $lookup:{
+    //     from:'compoff',
+    //     localField:'_id',
+    //     foreignField: 'empId',
+    //     pipeline: { $match: { empId: id } },
+    //     as:'compoff'
+    //   }
+    // },
+
+    {
       $project: {
         _id: 1,
         empName: 1,
@@ -226,12 +341,15 @@ const getEmployerById = async (req) => {
         designation: 1,
         department: 1,
         head: 1,
+        // compOff:{$size:'$compoff'},
         monthlyLeave: { $size: '$monthlyleave.total' },
         sickleave: { $size: '$totalsickleave' },
         casualLeave: { $size: '$casualleave' },
         Weekoffleave: { $size: '$Weekoffleave' },
         halfleave: { $size: '$halfleave' },
         Late: { $size: '$Late' },
+        holiday:{$size:'$holiday'},
+        wfh:{$size:'$wfh'},
         totalleave: { $ifNull: ['$totalleave.total', 0] },
         absent: { $size: '$absent' },
         sickandcasulaLeaves: { $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] },
@@ -298,6 +416,8 @@ const getEmployerById = async (req) => {
         head: 1,
         monthlyLeave: 1,
         sickleave: 1,
+        holiday:1,
+        wfh:1,
         casualLeave: 1,
         Weekoffleave: 1,
         halfleave: { $divide: ['$halfleave', 2] },
@@ -311,6 +431,9 @@ const getEmployerById = async (req) => {
       },
     },
   ]);
+  let findComp = { compOff: (await CompOff.find({ empId: id }).count()) || 0 };
+
+  findEmp = { ...findComp, ...findEmp };
   return findEmp;
 };
 
@@ -389,6 +512,53 @@ const gettodayReportCounts = async (req) => {
   let absenties = absentiesCalc.length == 0 ? 0 : absentiesCalc.length;
   return { values: values, employer: employers, present: employers - absenties };
 };
+const getWeekoffById = async (req) => {
+  let { id } = req.query;
+  let data = await Attendance.aggregate([
+    { $match: { empId: id } },
+    {
+      $project: {
+        _id: 1,
+        date: 1,
+        leavetype: 1,
+      },
+    },
+    { $match: { $or: [{ leavetype: 'Week off' }, { leavetype: 'Holiday' }] } },
+  ]);
+  return data;
+};
+const createCompOff = async (req) => {
+  let { weekOffId, date, empId,leavetype } = req.body;
+
+  let findOgId = await Attendance.aggregate([
+    { $match: { $and: [{ empId: empId }, { _id: weekOffId },{leavetype:{$in: ['Week off', 'Holiday' ]}} ] } },
+    {
+      $project: {
+        _id: 1,
+        date: 1,
+        leavetype: 1,
+      },
+    },
+   
+  ]);
+  console.log(findOgId);
+  if (!findOgId.length > 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Id for compoff !');
+  }
+   let findId = await CompOff.find({weekOffId:weekOffId})
+  if(findId.length > 0){
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Comp Off already exists for this date');
+  }
+  let createCompOff = await new CompOff({
+    weekOffId:weekOffId,
+    weekOffDate:date,
+    compOff:1,
+    empId:empId,
+    leavetype:leavetype
+  })
+  createCompOff.save()
+  return createCompOff
+};
 
 module.exports = {
   createEmployer,
@@ -401,4 +571,7 @@ module.exports = {
   getEmployerById,
   gettodayReportCounts,
   getEmployeeById,
+  getAllEmployerAtten,
+  getWeekoffById,
+  createCompOff,
 };
