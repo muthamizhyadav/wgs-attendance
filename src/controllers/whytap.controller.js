@@ -54,6 +54,11 @@ const getPlaceMentsById = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const getPlaceMentsByStudents = catchAsync(async (req, res) => {
+  const data = await WhytapService.getPlaceMentsByStudents(req);
+  res.send(data);
+});
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -65,4 +70,5 @@ module.exports = {
   updateplacementbyId,
   updateCandStatusInPlaceMent,
   getPlaceMentsById,
+  getPlaceMentsByStudents,
 };

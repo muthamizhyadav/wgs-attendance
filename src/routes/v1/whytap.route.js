@@ -9,5 +9,6 @@ router.route('/students/:id').put(WhyTapController.updateStudentbyId);
 router.route('/placement').post(WhyTapController.createPlacements).get(WhyTapController.getplacement);
 router.route('/placement/:id').put(WhyTapController.updateplacementbyId).get(WhyTapController.getPlaceMentsById);
 router.route('/placement/student/status/:id').put(WhyTapController.updateCandStatusInPlaceMent);
+router.route('/placements/students/:id').get(WhyTapController.getPlaceMentsByStudents);
 
 module.exports = router;

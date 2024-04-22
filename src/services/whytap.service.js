@@ -1,8 +1,9 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Admin, Students, Placement } = require('../models/whytap.model');
+const { Admin, Students, Placement, PlacementDetails } = require('../models/whytap.model');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
+const { pipeline } = require('nodemailer/lib/xoauth2');
 
 const createWhyTapAdmin = async (req) => {
   const { password } = req.body;
@@ -32,7 +33,44 @@ const createStudent = async (req) => {
 };
 
 const getStudent = async (req) => {
-  const findAllStudents = await Students.find();
+  const findAllStudents = await Students.aggregate([
+    {
+      $lookup: {
+        from: 'placementdetails',
+        localField: '_id',
+        foreignField: 'studentId',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'placements',
+              localField: 'placementId',
+              foreignField: '_id',
+              as: 'company',
+            },
+          },
+          {
+            $unwind: {
+              preserveNullAndEmptyArrays: true,
+              path: '$company',
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              status: 1,
+              companyName: '$company.companyName',
+              interviewDate: '$company.interviewDate',
+              jobTitle: '$company.jobTitle',
+              location: '$company.location',
+              companyAddress: '$company.companyAddress',
+              studentId: 1,
+            },
+          },
+        ],
+        as: 'placementsDetails',
+      },
+    },
+  ]);
   return findAllStudents;
 };
 
@@ -48,17 +86,54 @@ const updateStudentbyId = async (req) => {
 // placement Modules
 
 const createPlacements = async (req) => {
-  let stds = [];
-  req.body.students.map((e) => {
-    let val = { id: e };
-    stds.push(val);
+  const { students, location, jobTitle, companyName } = req.body;
+  const creation = await Placement.create(req.body);
+  students.map(async (e) => {
+    let data = {
+      placementId: creation._id,
+      studentId: e,
+      status: 'Pending',
+    };
+    await PlacementDetails.create(data);
   });
-  const creation = await Placement.create({ ...req.body, ...{ students: stds } });
   return creation;
 };
 
 const getplacement = async (req) => {
-  const findAllplacements = await Placement.find();
+  const findAllplacements = await Placement.aggregate([
+    {
+      $lookup: {
+        from: 'placementdetails',
+        localField: '_id',
+        foreignField: 'placementId',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'students',
+              localField: 'studentId',
+              foreignField: '_id',
+              as: 'student',
+            },
+          },
+          {
+            $unwind: { preserveNullAndEmptyArrays: true, path: '$student' },
+          },
+          {
+            $project: {
+              _id: 1,
+              status: 1,
+              studentId: 1,
+              studentName: '$student.name',
+              batch: '$student.batch',
+              course: '$student.course',
+              phone: '$student.phone',
+            },
+          },
+        ],
+        as: 'placements',
+      },
+    },
+  ]);
   return findAllplacements;
 };
 
@@ -67,32 +142,39 @@ const updateplacementbyId = async (req) => {
   if (!findplacement) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Placement Not Found');
   }
-  findplacement = await Placement.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true });
-  return findplacement;
+  let students = req.body.students ? req.body.students : [];
+  if (students.length == 0) {
+    findplacement = await Placement.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true });
+    return findplacement;
+  } else {
+    findplacement = await Placement.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true });
+    students.map(async (e) => {
+      await Placement.findByIdAndUpdate({ _id: req.params.id }, { $push: { students: e } }, { new: true });
+      let datas = {
+        placementId: req.params.id,
+        studentId: e,
+        status: 'Pending',
+      };
+      await PlacementDetails.create(datas);
+    });
+    return findplacement;
+  }
 };
 
 const updateCandStatusInPlaceMent = async (req) => {
   const { studentId, status } = req.body;
-  console.log(studentId);
-  let placementId = req.params.id;
-  let findplacementById = await Placement.findById(placementId);
-  if (!findplacementById) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Placement Not FoundI');
+  let findPlacementDetails = await PlacementDetails.findById(req.params.id);
+  if (!findPlacementDetails) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Interview Not Scheduled');
   }
-
-  if (findplacementById.students.length > 0) {
-    let existingData = findplacementById.students;
-    let ind = findplacementById.students.findIndex((a) => a.id === studentId);
-    let fetchValue = findplacementById.students.find((e) => e.id === studentId);
-    let removed = existingData.splice(ind, 1);
-    fetchValue.status = status;
-    existingData.push(fetchValue);
-  }
-
-  return findplacementById;
+  findPlacementDetails = await PlacementDetails.findByIdAndUpdate({ _id: findPlacementDetails._id }, req.body, {
+    new: true,
+  });
+  return findPlacementDetails;
 };
 
 const getPlaceMentsById = async (req) => {
+  let id = req.params.id;
   let placement = await Placement.findById(req.params.id);
   if (!placement) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'PlaceMent Not Found');
@@ -112,8 +194,63 @@ const getPlaceMentsById = async (req) => {
         _id: { $in: studentsId },
       },
     },
+    {
+      $lookup: {
+        from: 'placementdetails',
+        localField: '_id',
+        foreignField: 'studentId',
+        pipeline: [{ $match: { placementId: id } }, { $sort: { createdAt: -1 } }, { $limit: 1 }],
+        as: 'status',
+      },
+    },
+    {
+      $unwind: { path: '$status', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        _id: 1,
+        status: { $ifNull: ['$status.status', 'Pending'] },
+        active: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        batch: 1,
+        course: 1,
+      },
+    },
   ]);
   return getStudents;
+};
+
+const getPlaceMentsByStudents = async (req) => {
+  let val = await Placement.aggregate([
+    {
+      $match: { students: { $elemMatch: { id: req.params.id } } },
+    },
+    {
+      $lookup: {
+        from: 'placementdetails',
+        localField: '_id',
+        foreignField: 'placementId',
+        as: 'place',
+      },
+    },
+    {
+      $unwind: { path: '$place', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        _id: 1,
+        companyName: 1,
+        jobTitle: 1,
+        location: 1,
+        companyAddress: 1,
+        interviewDate: 1,
+        status: { $ifNull: ['$place.status', 'Pending'] },
+      },
+    },
+  ]);
+  return val;
 };
 
 module.exports = {
@@ -127,4 +264,5 @@ module.exports = {
   updateplacementbyId,
   updateCandStatusInPlaceMent,
   getPlaceMentsById,
+  getPlaceMentsByStudents,
 };
