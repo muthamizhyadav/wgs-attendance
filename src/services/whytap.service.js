@@ -1,6 +1,6 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Admin, Students, Placement, PlacementDetails } = require('../models/whytap.model');
+const { Admin, Students, Placement, PlacementDetails, Batch, Course, Company } = require('../models/whytap.model');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { pipeline } = require('nodemailer/lib/xoauth2');
@@ -11,6 +11,20 @@ const createWhyTapAdmin = async (req) => {
   let creations = await Admin.create({ ...req.body, ...{ password: hashPassword } });
   return creations;
 };
+
+const getBatch = async (req) => {
+  const getbatch = await Batch.find()
+  return getbatch
+}
+const getCompany = async (req) => {
+  const getCompany = await Company.find()
+  return getCompany
+}
+
+const getCourse = async (req) => {
+  const getcourse = await Course.find()
+  return getcourse
+}
 
 const LoginByEmailPassword = async (req) => {
   const { email, password } = req.body;
@@ -31,6 +45,20 @@ const createStudent = async (req) => {
   const creation = await Students.create(req.body);
   return creation;
 };
+
+const createBatch = async (req) => {
+  const batch = await Batch.create(req.body)
+  return batch;
+}
+const createCourse = async (req) => {
+  const course = await Course.create(req.body)
+  return course;
+}
+
+const createCompany = async (req) => {
+  const company = await Company.create(req.body)
+  return company;
+}
 
 const getStudent = async (req) => {
   const findAllStudents = await Students.aggregate([
@@ -173,6 +201,33 @@ const updateCandStatusInPlaceMent = async (req) => {
   return findPlacementDetails;
 };
 
+const updateBatch = async (req) => {
+  let findBatches = await Batch.findById(req.params.id)
+  if (!findBatches) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "No batch found")
+  }
+  findBatches = await Batch.findByIdAndUpdate({ _id: findBatches._id }, req.body, { new: true })
+  return findBatches;
+}
+
+const updateCourse = async (req) => {
+  let findCourse = await Course.findById(req.params.id)
+  if (!findCourse) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "No course found")
+  }
+  findCourse = await Course.findByIdAndUpdate({ _id: findCourse._id }, req.body, { new: true })
+  return findCourse;
+}
+
+const updateCompany = async (req) => {
+  let findCompany = await Company.findById(req.params.id)
+  if (!findCompany) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "No company found")
+  }
+  findCompany = await Company.findByIdAndUpdate({ _id: findCompany._id }, req.body, { new: true })
+  return findCompany
+}
+
 const getPlaceMentsById = async (req) => {
   let id = req.params.id;
   let placement = await Placement.findById(req.params.id);
@@ -265,4 +320,13 @@ module.exports = {
   updateCandStatusInPlaceMent,
   getPlaceMentsById,
   getPlaceMentsByStudents,
+  createBatch,
+  getBatch,
+  updateBatch,
+  updateCourse,
+  getCourse,
+  createCourse,
+  createCompany,
+  updateCompany,
+  getCompany
 };
