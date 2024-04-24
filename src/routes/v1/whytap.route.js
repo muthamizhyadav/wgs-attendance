@@ -21,6 +21,6 @@ router.route('/course/:id').put(WhyTapController.updateCourse).get(WhyTapControl
 router.route('/company').post(WhyTapController.createCompany);
 router.route('/company').get(WhyTapController.getCompany);
 router.route('/company/:id').put(WhyTapController.updateCompany).get(WhyTapController.getCompany);
-
+router.route('/delete/:id/:menu').delete(WhyTapController.deleteById_withMenu)
 
 module.exports = router;

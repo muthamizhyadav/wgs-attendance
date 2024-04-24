@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const WhytapService = require('../services/whytap.service');
 const catchAsync = require('../utils/catchAsync');
 const { tokenService } = require('../services');
+const { any } = require('joi');
 
 const createWhyTapAdmin = catchAsync(async (req, res) => {
   const data = await WhytapService.createWhyTapAdmin(req);
@@ -100,6 +101,11 @@ const updateCourse = catchAsync(async (req, res) => {
   res.send(data)
 })
 
+const deleteById_withMenu = catchAsync(async(req,res)=>{
+  const data = await WhytapService.DeleteDataWithIdandMenu(req);
+  res.send(data)
+})
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -120,5 +126,6 @@ module.exports = {
   createCourse,
   getCompany,
   createCompany,
-  updateCompany
+  updateCompany,
+  deleteById_withMenu
 };

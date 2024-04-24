@@ -4,7 +4,7 @@ const { Admin, Students, Placement, PlacementDetails, Batch, Course, Company } =
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { pipeline } = require('nodemailer/lib/xoauth2');
-
+const mongoose = require('mongoose');
 const createWhyTapAdmin = async (req) => {
   const { password } = req.body;
   let hashPassword = await bcrypt.hash(password, 8);
@@ -302,6 +302,13 @@ const updateCompany = async (req) => {
   return findCompany;
 };
 
+const deleteCompany = async (req) => {
+  let delCompany = await Company.findByIdAndDelete(req.params.id)
+  if (!delCompany) {
+
+  }
+}
+
 const getPlaceMentsById = async (req) => {
   let id = req.params.id;
   let placement = await Placement.findById(req.params.id);
@@ -382,6 +389,24 @@ const getPlaceMentsByStudents = async (req) => {
   return val;
 };
 
+const DeleteDataWithIdandMenu = async (req) => {
+  const { id, menu } = req.params
+  if (menu == 'student') {
+    let val = await Students.findOneAndDelete(id)
+    return val;
+  } else if (menu == 'company') {
+    return await Company.findOneAndDelete(id)
+  } else if (menu == 'interview') {
+    return await Placement.findOneAndDelete(id)
+  } else if (menu == 'course') {
+    return await Course.findOneAndDelete(id)
+  } else if (menu == 'batch') {
+    return await Batch.findByIdAndDelete(id)
+  } else {
+    return { message: "Error" }
+  }
+}
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -403,4 +428,5 @@ module.exports = {
   createCompany,
   updateCompany,
   getCompany,
+  DeleteDataWithIdandMenu
 };
