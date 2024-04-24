@@ -13,18 +13,18 @@ const createWhyTapAdmin = async (req) => {
 };
 
 const getBatch = async (req) => {
-  const getbatch = await Batch.find()
-  return getbatch
-}
+  const getbatch = await Batch.find();
+  return getbatch;
+};
 const getCompany = async (req) => {
-  const getCompany = await Company.find()
-  return getCompany
-}
+  const getCompany = await Company.find();
+  return getCompany;
+};
 
 const getCourse = async (req) => {
-  const getcourse = await Course.find()
-  return getcourse
-}
+  const getcourse = await Course.find();
+  return getcourse;
+};
 
 const LoginByEmailPassword = async (req) => {
   const { email, password } = req.body;
@@ -47,18 +47,18 @@ const createStudent = async (req) => {
 };
 
 const createBatch = async (req) => {
-  const batch = await Batch.create(req.body)
+  const batch = await Batch.create(req.body);
   return batch;
-}
+};
 const createCourse = async (req) => {
-  const course = await Course.create(req.body)
+  const course = await Course.create(req.body);
   return course;
-}
+};
 
 const createCompany = async (req) => {
-  const company = await Company.create(req.body)
+  const company = await Company.create(req.body);
   return company;
-}
+};
 
 const getStudent = async (req) => {
   const findAllStudents = await Students.aggregate([
@@ -98,6 +98,54 @@ const getStudent = async (req) => {
         as: 'placementsDetails',
       },
     },
+    {
+      $lookup: {
+        from: 'courses',
+        localField: 'courseId',
+        foreignField: '_id',
+        as: 'courseDetails',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$courseDetails',
+      },
+    },
+    {
+      $lookup: {
+        from: 'batches',
+        localField: 'batchId',
+        foreignField: '_id',
+        as: 'batchDetail',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$batchDetail',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        active: 1,
+        address: 1,
+        batch: '$batchDetail.batchname',
+        batchId: 1,
+        course: '$courseDetails.coursename',
+        courseId: 1,
+        dob: 1,
+        email: 1,
+        githubUrl: 1,
+        linkedinUrl: 1,
+        name: 1,
+        parentContact: 1,
+        phone: 1,
+        placementsDetails: 1,
+        status: 1,
+      },
+    },
   ]);
   return findAllStudents;
 };
@@ -114,12 +162,13 @@ const updateStudentbyId = async (req) => {
 // placement Modules
 
 const createPlacements = async (req) => {
-  const { students, location, jobTitle, companyName } = req.body;
+  const { students, companyId } = req.body;
   const creation = await Placement.create(req.body);
   students.map(async (e) => {
     let data = {
       placementId: creation._id,
       studentId: e,
+      companyId: companyId,
       status: 'Pending',
     };
     await PlacementDetails.create(data);
@@ -159,6 +208,31 @@ const getplacement = async (req) => {
           },
         ],
         as: 'placements',
+      },
+    },
+    {
+      $lookup: {
+        from: 'companies',
+        localField: 'companyId',
+        foreignField: '_id',
+        as: 'company',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$company',
+      },
+    },
+    {
+      $project: {
+        companyName: '$company.companyname',
+        location: '$company.location',
+        companyId: 1,
+        interviewDate: 1,
+        jobTitle: 1,
+        placements: '$placements',
+        students: 1,
       },
     },
   ]);
@@ -202,31 +276,31 @@ const updateCandStatusInPlaceMent = async (req) => {
 };
 
 const updateBatch = async (req) => {
-  let findBatches = await Batch.findById(req.params.id)
+  let findBatches = await Batch.findById(req.params.id);
   if (!findBatches) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "No batch found")
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No batch found');
   }
-  findBatches = await Batch.findByIdAndUpdate({ _id: findBatches._id }, req.body, { new: true })
+  findBatches = await Batch.findByIdAndUpdate({ _id: findBatches._id }, req.body, { new: true });
   return findBatches;
-}
+};
 
 const updateCourse = async (req) => {
-  let findCourse = await Course.findById(req.params.id)
+  let findCourse = await Course.findById(req.params.id);
   if (!findCourse) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "No course found")
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No course found');
   }
-  findCourse = await Course.findByIdAndUpdate({ _id: findCourse._id }, req.body, { new: true })
+  findCourse = await Course.findByIdAndUpdate({ _id: findCourse._id }, req.body, { new: true });
   return findCourse;
-}
+};
 
 const updateCompany = async (req) => {
-  let findCompany = await Company.findById(req.params.id)
+  let findCompany = await Company.findById(req.params.id);
   if (!findCompany) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "No company found")
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No company found');
   }
-  findCompany = await Company.findByIdAndUpdate({ _id: findCompany._id }, req.body, { new: true })
-  return findCompany
-}
+  findCompany = await Company.findByIdAndUpdate({ _id: findCompany._id }, req.body, { new: true });
+  return findCompany;
+};
 
 const getPlaceMentsById = async (req) => {
   let id = req.params.id;
@@ -328,5 +402,5 @@ module.exports = {
   createCourse,
   createCompany,
   updateCompany,
-  getCompany
+  getCompany,
 };

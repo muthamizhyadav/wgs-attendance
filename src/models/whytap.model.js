@@ -52,11 +52,11 @@ const StudentsSchema = mongoose.Schema(
     phone: {
       type: String,
     },
-    batch: String,
+    batchId: String,
     dob: String,
     linkedinUrl: String,
     githubUrl: String,
-    course: String,
+    courseId: String,
     address: String,
     parentContact: String,
     status: {
@@ -91,6 +91,9 @@ const PlacementSchema = mongoose.Schema(
       default: v4,
     },
     companyName: {
+      type: String,
+    },
+    companyId: {
       type: String,
     },
     jobTitle: {
@@ -141,44 +144,43 @@ const BatchSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
-  }
-})
+    unique: true,
+  },
+});
 
 const CourseSchema = mongoose.Schema({
   _id: {
     type: String,
-    default: v4
+    default: v4,
   },
   coursename: {
     type: String,
     required: true,
     trim: true,
-    unique: true,
-  }
-})
+  },
+});
 
 const CompanySchema = mongoose.Schema({
   _id: {
     type: String,
-    default: v4
+    default: v4,
   },
   companyname: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   location: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   address: {
     type: String,
     required: true,
-    trim: true
-  }
-})
+    trim: true,
+  },
+});
 
 const Admin = mongoose.model('whytapadmin', whyTapUserSchema);
 const Students = mongoose.model('students', StudentsSchema);
