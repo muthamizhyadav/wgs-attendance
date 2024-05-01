@@ -5,6 +5,8 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const mongoose = require('mongoose');
+
+
 const createWhyTapAdmin = async (req) => {
   const { password } = req.body;
   let hashPassword = await bcrypt.hash(password, 8);
@@ -407,6 +409,11 @@ const DeleteDataWithIdandMenu = async (req) => {
   }
 }
 
+const DashboardCounts = async (req) => {
+  const studentsNumber = Students.countDocuments();
+  console.log(studentsNumber);
+}
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -428,5 +435,6 @@ module.exports = {
   createCompany,
   updateCompany,
   getCompany,
-  DeleteDataWithIdandMenu
+  DeleteDataWithIdandMenu,
+  DashboardCounts
 };

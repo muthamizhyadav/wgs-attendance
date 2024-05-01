@@ -101,8 +101,13 @@ const updateCourse = catchAsync(async (req, res) => {
   res.send(data)
 })
 
-const deleteById_withMenu = catchAsync(async(req,res)=>{
+const deleteById_withMenu = catchAsync(async (req, res) => {
   const data = await WhytapService.DeleteDataWithIdandMenu(req);
+  res.send(data)
+})
+
+const getDashboardCounts = catchAsync(async (req, res) => {
+  const data = await WhytapService.DashboardCounts(req);
   res.send(data)
 })
 
@@ -127,5 +132,6 @@ module.exports = {
   getCompany,
   createCompany,
   updateCompany,
-  deleteById_withMenu
+  deleteById_withMenu,
+  getDashboardCounts
 };
