@@ -427,6 +427,12 @@ const DashboardCounts = async (req) => {
   };
 }
 
+const getBatchStudents = async (req) => {
+  console.log(req.query.batchId)
+  const students = await Students.find({ batchId: req.query.batchId })
+  return students;
+}
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -449,5 +455,6 @@ module.exports = {
   updateCompany,
   getCompany,
   DeleteDataWithIdandMenu,
-  DashboardCounts
+  DashboardCounts,
+  getBatchStudents
 };
