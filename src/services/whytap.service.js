@@ -410,8 +410,21 @@ const DeleteDataWithIdandMenu = async (req) => {
 }
 
 const DashboardCounts = async (req) => {
-  const studentsNumber = Students.countDocuments();
-  console.log(studentsNumber);
+  const studentsNumber = await Students.countDocuments();
+  const interviewNumbers = await Placement.countDocuments();
+  const selectedStudents = await PlacementDetails.countDocuments({ status: "Selected" })
+  const notSelectedStudents = await PlacementDetails.aggregate([{
+    $match: {
+      status: { $ne: 'Selected' }
+    }
+  }])
+  console.log(notSelectedStudents);
+  return {
+    studentNumber: studentsNumber,
+    interviewNumbers: interviewNumbers,
+    selectedStudents: selectedStudents,
+    notSelectedStudents: notSelectedStudents.length
+  };
 }
 
 module.exports = {
