@@ -26,6 +26,7 @@ const whyTapUserSchema = mongoose.Schema(
       trim: true,
     },
     phone: String,
+    role: String,
   },
   {
     timestamps: true,
