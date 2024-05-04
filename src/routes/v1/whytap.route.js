@@ -10,5 +10,19 @@ router.route('/placement').post(WhyTapController.createPlacements).get(WhyTapCon
 router.route('/placement/:id').put(WhyTapController.updateplacementbyId).get(WhyTapController.getPlaceMentsById);
 router.route('/placement/student/status/:id').put(WhyTapController.updateCandStatusInPlaceMent);
 router.route('/placements/students/:id').get(WhyTapController.getPlaceMentsByStudents);
+router.route('/batches').post(WhyTapController.createBatch);
+router.route('/batches').get(WhyTapController.getbatch);
+router.route('/batch/:id').put(WhyTapController.updateBatch).get(WhyTapController.getbatch);
+
+router.route('/course').post(WhyTapController.createCourse);
+router.route('/course').get(WhyTapController.getCourse);
+router.route('/course/:id').put(WhyTapController.updateCourse).get(WhyTapController.getCourse);
+
+router.route('/company').post(WhyTapController.createCompany);
+router.route('/company').get(WhyTapController.getCompany);
+router.route('/company/:id').put(WhyTapController.updateCompany).get(WhyTapController.getCompany);
+router.route('/delete/:id/:menu').delete(WhyTapController.deleteById_withMenu)
+router.route('/dashboardCounts').get(WhyTapController.getDashboardCounts)
+router.route('/getbatchstudents').get(WhyTapController.getBatchStudents)
 
 module.exports = router;

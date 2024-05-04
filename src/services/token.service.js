@@ -77,6 +77,7 @@ const generateAuthTokens = async (user) => {
   return {
     access: {
       token: accessToken,
+      role:user.role,
       expires: accessTokenExpires.toDate(),
     },
     refresh: {
