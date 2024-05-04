@@ -47,6 +47,7 @@ const EmployerSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    grossSalary:String,
     active: {
       type: Boolean,
       default: true,
@@ -83,8 +84,15 @@ const compOffSchema = new mongoose.Schema({
   },
   empId:String,
   leavetype:String,
+  alternateDate:{
+    type:String,
+  },
   weekOffId:{
     type:String,
+  },
+  active:{
+    type:Boolean,
+    default:true
   },
   weekOffDate:String,
   compOff:{
@@ -94,12 +102,29 @@ const compOffSchema = new mongoose.Schema({
 },
 { timestamps: true })
 
+const permissionSchema = new mongoose.Schema({
+  _id:{
+    type: String,
+    default:v4,
+  },
+  empId:String,
+  date:String,
+  month:String,
+  year:String,
+  fromTime:String,
+  toTime:String,
+  duration:String,
+},{timestamps: true})
+
+
 const Employer = mongoose.model('employers', EmployerSchema);
 const Attendance = mongoose.model('attendance', EmployerAttendance);
 const CompOff = mongoose.model('compoff',compOffSchema)
+const Permission = mongoose.model('permission',permissionSchema);
 
 module.exports = {
   Employer,
   Attendance,
   CompOff,
+  Permission
 };

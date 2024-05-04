@@ -1,10 +1,11 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Employer, Attendance, CompOff } = require('../models/employer.model');
+const { Employer, Attendance, CompOff, Permission } = require('../models/employer.model');
 const moment = require('moment');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const { aggregate } = require('../models/token.model');
 const { log } = require('winston');
+const { Console } = require('winston/lib/winston/transports');
 
 const createEmployer = async (req) => {
   let body = req.body;
@@ -58,6 +59,7 @@ const getAllEmployer = async (req) => {
     {
       $match: {
         $and: [deptSearch, nameSearch],
+        dateOfJoining: { $lte: date },
       },
     },
     {
@@ -200,12 +202,14 @@ const deleteEmployerById = async (req) => {
 };
 
 const getEmployerById = async (req) => {
-  let { month } = req.query;
+  let { month } = req.body;
   let id = req.params.id;
 
   const date = new Date();
+
   let monthName = date.toLocaleString('default', { month: 'long' });
   let monthMatch = { month: monthName };
+  console.log(monthMatch, 'month');
   if (month && month != 'null' && month != '' && month != null) {
     monthMatch = { month: { $regex: month, $options: 'i' } };
     monthName = month;
@@ -231,9 +235,15 @@ const getEmployerById = async (req) => {
         foreignField: 'empId',
         pipeline: [
           { $match: { $and: [monthMatch, { leavetype: 'Casual Leave' }] } },
-          { $group: { _id: null, total: { $sum: '$attendance' } } },
+          { $group: { _id: null, total: { $sum: 1 } } },
         ],
         as: 'casualleave',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$casualleave',
       },
     },
     {
@@ -258,10 +268,13 @@ const getEmployerById = async (req) => {
         foreignField: 'empId',
         pipeline: [
           { $match: { $and: [monthMatch, { leavetype: 'Sick Leave' }] } },
-          { $group: { _id: null, total: { $sum: '$attendance' } } },
+          { $group: { _id: null, total: { $sum: 1 } } },
         ],
         as: 'totalsickleave',
       },
+    },
+    {
+      $unwind: { preserveNullAndEmptyArrays: true, path: '$totalsickleave' },
     },
     {
       $lookup: {
@@ -272,7 +285,6 @@ const getEmployerById = async (req) => {
         as: 'Weekoffleave',
       },
     },
-
     {
       $lookup: {
         from: 'attendances',
@@ -314,6 +326,15 @@ const getEmployerById = async (req) => {
         from: 'attendances',
         localField: '_id',
         foreignField: 'empId',
+        pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Comp Off' }] } }],
+        as: 'compOff',
+      },
+    },
+    {
+      $lookup: {
+        from: 'attendances',
+        localField: '_id',
+        foreignField: 'empId',
         pipeline: [{ $match: { $and: [monthMatch, { leavetype: 'Work from home' }] } }],
         as: 'wfh',
       },
@@ -343,16 +364,19 @@ const getEmployerById = async (req) => {
         head: 1,
         // compOff:{$size:'$compoff'},
         monthlyLeave: { $size: '$monthlyleave.total' },
-        sickleave: { $size: '$totalsickleave' },
-        casualLeave: { $size: '$casualleave' },
+        sickleave: { $ifNull: ['$totalsickleave.total', 0] },
+        casualLeave: { $ifNull: ['$casualleave.total', 0] },
+
         Weekoffleave: { $size: '$Weekoffleave' },
         halfleave: { $size: '$halfleave' },
         Late: { $size: '$Late' },
-        holiday:{$size:'$holiday'},
-        wfh:{$size:'$wfh'},
+
+        holiday: { $size: '$holiday' },
+        compOff: { $size: '$compOff' },
+        wfh: { $size: '$wfh' },
         totalleave: { $ifNull: ['$totalleave.total', 0] },
         absent: { $size: '$absent' },
-        sickandcasulaLeaves: { $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] },
+        sickandcasulaLeaves: { $add: ['$totalsickleave.total', '$casualleave.total'] },
         leaveLate: {
           $cond: {
             if: { $gt: [{ $size: '$Late' }, 3] },
@@ -366,39 +390,48 @@ const getEmployerById = async (req) => {
             else: 0,
           },
         },
-        sickCasualmin: {
+
+        sickCasualDetection: {
           $cond: {
-            if: { $gt: [{ $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] }, 2] },
-            then: {
-              $cond: {
-                if: {
-                  $gt: [
-                    {
-                      $subtract: [
-                        {
-                          $divide: [
-                            { $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] },
-                            2,
-                          ],
-                        },
-                        1,
-                      ],
-                    },
-                    0,
-                  ],
-                },
-                then: {
-                  $subtract: [
-                    { $divide: [{ $ifNull: [{ $add: [{ $size: '$totalsickleave' }, { $size: '$casualleave' }] }, 0] }, 2] },
-                    1,
-                  ],
-                },
-                else: 0,
-              },
-            },
+            if: { $gte: [{ $add: ['$totalsickleave.total', '$casualleave.total'] }, 2] },
+            then: { $subtract: [{ $add: ['$totalsickleave.total', '$casualleave.total'] }, 2] },
             else: 0,
           },
         },
+
+        // sickCasualmin: {
+        //   $cond: {
+        //     if: { $gt: [{ $ifNull: [{ $add: ['$totalsickleave.total',  '$casualleave.total' ] }, 0] }, 2] },
+        //     then: {
+        //       $cond: {
+        //         if: {
+        //           $gt: [
+        //             {
+        //               $subtract: [
+        //                 {
+        //                   $divide: [
+        //                     { $ifNull: [{ $add: ['$totalsickleave.total', '$casualleave.total'] }, 0] },
+        //                     2,
+        //                   ],
+        //                 },
+        //                 2,
+        //               ],
+        //             },
+        //             0,
+        //           ],
+        //         },
+        //         then: {
+        //           $subtract: [
+        //             { $divide: [{ $ifNull: [{ $add: ['$totalsickleave.total','$casualleave.total' ] }, 0] }, 2] },
+        //             1,
+        //           ],
+        //         },
+        //         else: 0,
+        //       },
+        //     },
+        //     else: 0,
+        //   },
+        // }
       },
     },
     {
@@ -416,8 +449,9 @@ const getEmployerById = async (req) => {
         head: 1,
         monthlyLeave: 1,
         sickleave: 1,
-        holiday:1,
-        wfh:1,
+        holiday: 1,
+        compOff: 1,
+        wfh: 1,
         casualLeave: 1,
         Weekoffleave: 1,
         halfleave: { $divide: ['$halfleave', 2] },
@@ -426,12 +460,13 @@ const getEmployerById = async (req) => {
         sickandcasulaLeaves: 1,
         leaveLate: 1,
         // sickCasualmin:1,
+        sickCasualDetection: 1,
         absent: 1,
-        LOP: { $add: ['$sickCasualmin', '$leaveLate', '$absent'] },
+        LOP: { $add: ['$sickCasualDetection', '$leaveLate', '$absent'] },
       },
     },
   ]);
-  let findComp = { compOff: (await CompOff.find({ empId: id }).count()) || 0 };
+  let findComp = { compOff: (await CompOff.find({ empId: id, active: true }).count()) || 0 };
 
   findEmp = { ...findComp, ...findEmp };
   return findEmp;
@@ -528,10 +563,10 @@ const getWeekoffById = async (req) => {
   return data;
 };
 const createCompOff = async (req) => {
-  let { weekOffId, date, empId,leavetype } = req.body;
+  let { weekOffId, date, empId, leavetype } = req.body;
 
   let findOgId = await Attendance.aggregate([
-    { $match: { $and: [{ empId: empId }, { _id: weekOffId },{leavetype:{$in: ['Week off', 'Holiday' ]}} ] } },
+    { $match: { $and: [{ empId: empId }, { _id: weekOffId }, { leavetype: { $in: ['Week off', 'Holiday'] } }] } },
     {
       $project: {
         _id: 1,
@@ -539,27 +574,176 @@ const createCompOff = async (req) => {
         leavetype: 1,
       },
     },
-   
   ]);
   console.log(findOgId);
   if (!findOgId.length > 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Id for compoff !');
   }
-   let findId = await CompOff.find({weekOffId:weekOffId})
-  if(findId.length > 0){
+  let findId = await CompOff.find({ weekOffId: weekOffId });
+  if (findId.length > 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Comp Off already exists for this date');
   }
   let createCompOff = await new CompOff({
-    weekOffId:weekOffId,
-    weekOffDate:date,
-    compOff:1,
-    empId:empId,
-    leavetype:leavetype
-  })
-  createCompOff.save()
-  return createCompOff
+    weekOffId: weekOffId,
+    weekOffDate: date,
+    compOff: 1,
+    empId: empId,
+    leavetype: leavetype,
+  });
+  createCompOff.save();
+  return createCompOff;
+};
+const getCompOffById = async (req) => {
+  const id = req.params.id;
+  let findCompOff = await CompOff.aggregate([
+    { $match: { $and: [{ empId: id }, { active: true }] } },
+    {
+      $project: {
+        leavetype: 1,
+        _id: 1,
+        weekOffDate: 1,
+        weekOffId: 1,
+      },
+    },
+  ]);
+  return findCompOff;
+};
+const deductCompOff = async (req) => {
+  const { empId, date } = req.body;
+  const id = req.params.id;
+  let data = {
+    active: false,
+    compOff: 0,
+    alternateDate: date,
+  };
+  let changeCompOff = await CompOff.findByIdAndUpdate({ _id: id }, data, { new: true });
+  return changeCompOff;
+};
+const getEmployeeStatusById = async (req) => {
+  console.log('dsffsfsd');
+  const { date, id } = req.body;
+  const getStatus = await Attendance.find({ empId: id, date: date });
+  console.log(getStatus, date, id);
+  if (getStatus.length == 0) {
+    return [{ leavetype: 'Present' }];
+  } else {
+    return getStatus;
+  }
 };
 
+const createPermission = async (req) => {
+  let { empId, date, month, year, fromTime, toTime, duration } = req.body;
+  let permissionCount = await Permission.findOne({ empId: empId, month: month }).countDocuments();
+  console.log(permissionCount);
+  if (permissionCount >= 2) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Already two permissions granted');
+  }
+  let newPermission = await new Permission({
+    empId: empId,
+    date: date,
+    month: month,
+    year: year,
+    fromTime: fromTime,
+    toTime: toTime,
+    duration: duration,
+  });
+  newPermission.save();
+
+  return newPermission;
+};
+
+const getPermissionStatus = async (req) => {
+  let { empId, date } = req.body;
+  console.log(empId, date);
+
+  const newDate = new Date(date);
+
+  let monthName = newDate.toLocaleString('default', { month: 'long' });
+  console.log(monthName, 'month');
+  // const findPerm = await Permission.aggregate([
+  //   {
+  //     $match:{
+  //     empId:empId,
+  //     date: date,
+  //     }
+  //   },{
+  //     $lookup:{
+  //       from:'attendances',
+  //       localField:'empId',
+  //       foreignField:'empId',
+  //       pipeline: [{ $match: { date: date } }],
+  //       as:"attendances"
+  //     }
+  //   },
+  //   {
+  //     $project:{
+  //       empId: 1,
+  //       date: 1,
+  //       month: 1,
+  //      leavetype:'attendances.leavetype',
+
+  //     }
+  //   }
+  // ])
+  const findAtten = await Attendance.aggregate([
+    {
+      $match: {
+        empId: empId,
+        date: date,
+        month: monthName,
+      },
+    },
+    {
+      $lookup: {
+        from: 'permissions',
+        localField: 'empId',
+        foreignField: 'empId',
+        pipeline: [{ $match: { date: date } }],
+        as: 'permissions',
+      },
+    },
+    {
+      $project: {
+        empId: 1,
+        date: 1,
+        month: 1,
+        leavetype: 1,
+        permissionStatus: {
+          $cond: {
+            if: { $gt: [{ $size: '$permissions' }, 0] },
+            then: 'Permission taken',
+            else: 'No permission taken',
+          },
+        },
+      },
+    },
+  ]);
+
+  return findAtten;
+};
+const getPermission = async (req) => {
+  const { month, empId } = req.body;
+
+  // const newDate = new Date(date);
+
+  // let monthName = newDate.toLocaleString('default', { month: 'long' });
+  // console.log(monthName,'month');
+  const permissions = await Permission.find({ month: month, empId: empId });
+
+  return permissions;
+};
+const updatePermission = async (req) => {
+  let { id } = req.params;
+  const permission = await Permission.findByIdAndUpdate({ _id: id }, req.body, { new: true });
+  return permission;
+};
+const deletePermission = async (req) => {
+  let { id } = req.params;
+  console.log(id, 'id');
+  // id = id.toString()
+  const permission = await Permission.findByIdAndDelete({ _id: id });
+  return permission;
+};
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -574,4 +758,12 @@ module.exports = {
   getAllEmployerAtten,
   getWeekoffById,
   createCompOff,
+  getCompOffById,
+  getEmployeeStatusById,
+  deductCompOff,
+  createPermission,
+  getPermissionStatus,
+  getPermission,
+  updatePermission,
+  deletePermission,
 };
