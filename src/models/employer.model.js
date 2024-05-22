@@ -20,21 +20,17 @@ const EmployerSchema = new mongoose.Schema(
     head: String,
     aadharNo: {
       type: String,
-      unique: true,
     },
     panNo: {
       type: String,
-      unique: true,
     },
     address: String,
     currentAddress: String,
     profEmail: {
       type: String,
-      unique: true,
     },
     alternatePhone: {
       type: String,
-      unique: true,
     },
     alternateName: String,
     alternateRelation: String,
@@ -47,7 +43,9 @@ const EmployerSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
-    grossSalary:String,
+    grossSalary: String,
+    pf: String,
+    esi: String,
     active: {
       type: Boolean,
       default: true,
@@ -77,54 +75,58 @@ const EmployerAttendance = new mongoose.Schema(
   { timestamps: true }
 );
 
-const compOffSchema = new mongoose.Schema({
-  _id:{
-    type: String,
-    default:v4,
+const compOffSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    empId: String,
+    leavetype: String,
+    alternateDate: {
+      type: String,
+    },
+    weekOffId: {
+      type: String,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    weekOffDate: String,
+    compOff: {
+      type: Number,
+      default: 0,
+    },
   },
-  empId:String,
-  leavetype:String,
-  alternateDate:{
-    type:String,
-  },
-  weekOffId:{
-    type:String,
-  },
-  active:{
-    type:Boolean,
-    default:true
-  },
-  weekOffDate:String,
-  compOff:{
-   type: Number,
-   default:0
-  },
-},
-{ timestamps: true })
+  { timestamps: true }
+);
 
-const permissionSchema = new mongoose.Schema({
-  _id:{
-    type: String,
-    default:v4,
+const permissionSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    empId: String,
+    date: String,
+    month: String,
+    year: String,
+    fromTime: String,
+    toTime: String,
+    duration: String,
   },
-  empId:String,
-  date:String,
-  month:String,
-  year:String,
-  fromTime:String,
-  toTime:String,
-  duration:String,
-},{timestamps: true})
-
+  { timestamps: true }
+);
 
 const Employer = mongoose.model('employers', EmployerSchema);
 const Attendance = mongoose.model('attendance', EmployerAttendance);
-const CompOff = mongoose.model('compoff',compOffSchema)
-const Permission = mongoose.model('permission',permissionSchema);
+const CompOff = mongoose.model('compoff', compOffSchema);
+const Permission = mongoose.model('permission', permissionSchema);
 
 module.exports = {
   Employer,
   Attendance,
   CompOff,
-  Permission
+  Permission,
 };
