@@ -198,13 +198,35 @@ const getplacement = async (req) => {
             $unwind: { preserveNullAndEmptyArrays: true, path: '$student' },
           },
           {
+            $lookup: {
+              from: 'batches',
+              localField: 'student.batchId',
+              foreignField: "_id",
+              as: "batch"
+            }
+          },
+          {
+            $unwind: { preserveNullAndEmptyArrays: true, path: '$batch' }
+          },
+          {
+            $lookup: {
+              from: "courses",
+              localField: "student.courseId",
+              foreignField: "_id",
+              as: 'course'
+            }
+          },
+          {
+            $unwind: { preserveNullAndEmptyArrays: true, path: '$course' }
+          },
+          {
             $project: {
               _id: 1,
               status: 1,
               studentId: 1,
               studentName: '$student.name',
-              batch: '$student.batch',
-              course: '$student.course',
+              batch: '$batch.batchname',
+              course: '$course.coursename',
               phone: '$student.phone',
             },
           },
@@ -393,15 +415,17 @@ const getPlaceMentsByStudents = async (req) => {
 
 const DeleteDataWithIdandMenu = async (req) => {
   const { id, menu } = req.params
+  console.log(id)
   if (menu == 'student') {
-    let val = await Students.findOneAndDelete(id)
+    let val = await Students.findByIdAndDelete(id)
     return val;
   } else if (menu == 'company') {
-    return await Company.findOneAndDelete(id)
+    return await Company.findByIdAndDelete(id)
   } else if (menu == 'interview') {
-    return await Placement.findOneAndDelete(id)
+    await PlacementDetails.deleteMany({ placementId: id })
+    return await Placement.findByIdAndDelete(id)
   } else if (menu == 'course') {
-    return await Course.findOneAndDelete(id)
+    return await Course.findByIdAndDelete(id)
   } else if (menu == 'batch') {
     return await Batch.findByIdAndDelete(id)
   } else {
