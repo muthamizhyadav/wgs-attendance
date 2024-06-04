@@ -418,6 +418,7 @@ const DeleteDataWithIdandMenu = async (req) => {
   console.log(id)
   if (menu == 'student') {
     let val = await Students.findByIdAndDelete(id)
+    await PlacementDetails.deleteMany({ studentId: id })
     return val;
   } else if (menu == 'company') {
     return await Company.findByIdAndDelete(id)
