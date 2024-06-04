@@ -6,6 +6,7 @@ const { pipeline } = require('nodemailer/lib/xoauth2');
 const { aggregate } = require('../models/token.model');
 const { log } = require('winston');
 const { Console } = require('winston/lib/winston/transports');
+const xlsx = require('xlsx');
 
 const createEmployer = async (req) => {
   let body = req.body;
@@ -744,6 +745,29 @@ const deletePermission = async (req) => {
   const permission = await Permission.findByIdAndDelete({ _id: id });
   return permission;
 };
+
+const EmployerBulkUpload = async (req) => {
+  if (req.file) {
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheet_name_list = workbook.SheetNames;
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+    return new Promise((resolve, reject) => {
+      let updates = [];
+      data.forEach(async (e) => {
+        try {
+          let creation = await Employer.create(e);
+          updates.push(creation);
+          if (data.length === updates.length) {
+            resolve(updates);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+};
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -766,4 +790,5 @@ module.exports = {
   getPermission,
   updatePermission,
   deletePermission,
+  EmployerBulkUpload,
 };

@@ -16,7 +16,6 @@ const getAllEmployerAtten = catchAsync(async (req, res) => {
   res.send(data);
 });
 
-
 const updateEmployerById = catchAsync(async (req, res) => {
   const data = await EmployerService.updateEmployerById(req);
   res.send(data);
@@ -63,47 +62,50 @@ const getWeekoffById = catchAsync(async (req, res) => {
   res.send(data);
 });
 
-const createCompOff = catchAsync(async(req,res)=>{
-  const data = await EmployerService.createCompOff(req)
+const createCompOff = catchAsync(async (req, res) => {
+  const data = await EmployerService.createCompOff(req);
   res.send(data);
-})
-const getCompOffById = catchAsync(async(req,res)=>{
-  const data = await EmployerService.getCompOffById(req)
+});
+const getCompOffById = catchAsync(async (req, res) => {
+  const data = await EmployerService.getCompOffById(req);
   res.send(data);
-})
-const getEmployeeStatusById = catchAsync(async(req,res)=>{
-  const data = await EmployerService.getEmployeeStatusById(req)
+});
+const getEmployeeStatusById = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEmployeeStatusById(req);
   res.send(data);
-})
-const deductCompOff = catchAsync(async(req,res)=>{
-  const data = await EmployerService.deductCompOff(req)
+});
+const deductCompOff = catchAsync(async (req, res) => {
+  const data = await EmployerService.deductCompOff(req);
   res.send(data);
-})
-const createPermission = catchAsync(async(req,res)=>{
-  const data = await EmployerService.createPermission(req)
+});
+const createPermission = catchAsync(async (req, res) => {
+  const data = await EmployerService.createPermission(req);
   res.send(data);
-})
-const getPermissionStatus = catchAsync(async(req,res)=>{
-  const data = await EmployerService.getPermissionStatus(req)
+});
+const getPermissionStatus = catchAsync(async (req, res) => {
+  const data = await EmployerService.getPermissionStatus(req);
   res.send(data);
-})
-const getPermission = catchAsync(async(req,res)=>{
-  const data = await EmployerService.getPermission(req)
+});
+const getPermission = catchAsync(async (req, res) => {
+  const data = await EmployerService.getPermission(req);
   res.send(data);
-})
-const updatePermission = catchAsync(async(req,res)=>{
-  const data = await EmployerService.updatePermission(req)
+});
+const updatePermission = catchAsync(async (req, res) => {
+  const data = await EmployerService.updatePermission(req);
   res.send(data);
-})
-const deletePermission = catchAsync(async(req,res)=>{
-  const data = await EmployerService.deletePermission(req)
+});
+const deletePermission = catchAsync(async (req, res) => {
+  const data = await EmployerService.deletePermission(req);
   res.send(data);
-})
+});
 
-
+const EmployerBulkUpload = catchAsync(async (req, res) => {
+  const data = await EmployerService.EmployerBulkUpload(req);
+  res.send(data);
+});
 
 module.exports = {
-  createEmployer, 
+  createEmployer,
   getAllEmployer,
   updateEmployerById,
   deleteEmployerById,
@@ -123,5 +125,6 @@ module.exports = {
   getPermissionStatus,
   getPermission,
   updatePermission,
-  deletePermission
+  deletePermission,
+  EmployerBulkUpload,
 };
