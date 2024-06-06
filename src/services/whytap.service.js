@@ -5,6 +5,7 @@ const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const mongoose = require('mongoose');
+const { locales } = require('validator/lib/isIBAN');
 
 
 const createWhyTapAdmin = async (req) => {
@@ -75,7 +76,33 @@ const getStudent = async (req) => {
               from: 'placements',
               localField: 'placementId',
               foreignField: '_id',
-              as: 'company',
+              pipeline: [
+                {
+                  $lookup: {
+                    from: "companies",
+                    localField: "companyId",
+                    foreignField: "_id",
+                    as: "companyDetails"
+                  }
+                },
+                {
+                  $unwind: {
+                    preserveNullAndEmptyArrays: true,
+                    path: "$companyDetails"
+                  }
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    companyname: '$companyDetails.companyname',
+                    interviewDate: 1,
+                    jobTitle: 1,
+                    location: '$companyDetails.location',
+                    companyAddress: 1,
+                  }
+                }
+              ],
+              as: "company"
             },
           },
           {
@@ -88,7 +115,7 @@ const getStudent = async (req) => {
             $project: {
               _id: 1,
               status: 1,
-              companyName: '$company.companyName',
+              companyName: '$company.companyname',
               interviewDate: '$company.interviewDate',
               jobTitle: '$company.jobTitle',
               location: '$company.location',
@@ -108,6 +135,7 @@ const getStudent = async (req) => {
         as: 'courseDetails',
       },
     },
+
     {
       $unwind: {
         preserveNullAndEmptyArrays: true,
@@ -456,6 +484,10 @@ const getBatchStudents = async (req) => {
   console.log(req.query.batchId)
   const students = await Students.find({ batchId: req.query.batchId })
   return students;
+}
+
+const getBatchStudentChart = async (req) => {
+  console.log()
 }
 
 module.exports = {

@@ -116,6 +116,11 @@ const getBatchStudents = catchAsync(async (req, res) => {
   res.send(data);
 })
 
+const getStudentBatchWiseChart = catchAsync(async(req, res)=>{
+  const data = await WhytapService.getBatchStudentChart(req)
+  res.send(data);
+})
+
 module.exports = {
   createWhyTapAdmin,
   LoginByEmailPassword,
@@ -139,5 +144,6 @@ module.exports = {
   updateCompany,
   deleteById_withMenu,
   getDashboardCounts,
-  getBatchStudents
+  getBatchStudents,
+  getStudentBatchWiseChart
 };
