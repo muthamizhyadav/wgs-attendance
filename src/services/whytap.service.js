@@ -283,6 +283,7 @@ const getplacement = async (req) => {
         companyId: 1,
         interviewDate: 1,
         jobTitle: 1,
+        jobdescription: 1,
         placements: '$placements',
         students: 1,
       },

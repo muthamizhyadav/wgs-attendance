@@ -1,4 +1,4 @@
-const { required } = require('joi');
+const { required, boolean } = require('joi');
 const mongoose = require('mongoose');
 const { v4 } = require('uuid');
 const { trim } = require('validator');
@@ -55,10 +55,15 @@ const StudentsSchema = mongoose.Schema(
     },
     batchId: String,
     dob: String,
+    gender: String,
+    parentname: String,
     linkedinUrl: String,
     githubUrl: String,
     courseId: String,
     address: String,
+    city: String,
+    state: String,
+    country: String,
     parentContact: String,
     status: {
       type: String,
@@ -103,6 +108,7 @@ const PlacementSchema = mongoose.Schema(
     location: {
       type: String,
     },
+    jobdescription: String,
     companyAddress: String,
     students: {
       type: Array,
@@ -147,6 +153,14 @@ const BatchSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+  startDate: {
+    type: String,
+    trim: true
+  },
+  endDate: {
+    type: String,
+    trim: true
+  }
 });
 
 const CourseSchema = mongoose.Schema({
@@ -171,15 +185,65 @@ const CompanySchema = mongoose.Schema({
     required: true,
     trim: true,
   },
-  location: {
+  // location: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  addressline1: {
     type: String,
     required: true,
     trim: true,
   },
-  address: {
+  addressline2: {
+    type: String,
+    trim: true,
+  },
+  industry: {
     type: String,
     required: true,
-    trim: true,
+    trim: true
+  },
+  website: {
+    type: String,
+    trim: true
+  },
+  contactPerson: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  designation: {
+    type: String,
+    trim: true
+  },
+  contactPersonNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  city: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  state: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  country: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  companysize: {
+    type: String,
+    trim: true
+  },
+  currentlyRecruting: {
+    type: Boolean,
+    Default: false
   },
 });
 
