@@ -161,7 +161,7 @@ const BatchSchema = mongoose.Schema({
     type: String,
     trim: true
   }
-});
+}, { timestamps: true });
 
 const CourseSchema = mongoose.Schema({
   _id: {
@@ -173,7 +173,7 @@ const CourseSchema = mongoose.Schema({
     required: true,
     trim: true,
   },
-});
+}, { timestamps: true });
 
 const CompanySchema = mongoose.Schema({
   _id: {
@@ -245,7 +245,8 @@ const CompanySchema = mongoose.Schema({
     type: Boolean,
     Default: false
   },
-});
+
+}, { timestamps: true });
 
 const Admin = mongoose.model('whytapadmin', whyTapUserSchema);
 const Students = mongoose.model('students', StudentsSchema);

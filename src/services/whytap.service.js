@@ -16,11 +16,26 @@ const createWhyTapAdmin = async (req) => {
 };
 
 const getBatch = async (req) => {
-  const getbatch = await Batch.find();
+  const getbatch = await Batch.aggregate([
+    {
+      $lookup: {
+        from: 'students',
+        localField: '_id',
+        foreignField: 'batchId',
+        as: 'students'
+      },
+    },
+    {
+      $project: {
+        batchname: 1,
+        totalBatchStudent: { $size: '$students' }
+      }
+    }
+  ])
   return getbatch;
 };
 const getCompany = async (req) => {
-  const getCompany = await Company.find();
+  const getCompany = await Company.find().sort({ createdAt: -1 });
   return getCompany;
 };
 
@@ -174,6 +189,12 @@ const getStudent = async (req) => {
         phone: 1,
         placementsDetails: 1,
         status: 1,
+        parentname: 1,
+        gender: 1,
+        city: 1,
+        state: 1,
+        country: 1
+
       },
     },
   ]);
@@ -330,6 +351,7 @@ const updateCandStatusInPlaceMent = async (req) => {
 
 const updateBatch = async (req) => {
   let findBatches = await Batch.findById(req.params.id);
+  console.log(req.body);
   if (!findBatches) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'No batch found');
   }
