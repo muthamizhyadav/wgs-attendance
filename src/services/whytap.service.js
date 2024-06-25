@@ -28,8 +28,12 @@ const getBatch = async (req) => {
     {
       $project: {
         batchname: 1,
+        createdAt: 1,
         totalBatchStudent: { $size: '$students' }
       }
+    },
+    {
+      $sort: { createdAt: -1 }
     }
   ])
   return getbatch;
