@@ -44,7 +44,7 @@ const getCompany = async (req) => {
 };
 
 const getCourse = async (req) => {
-  const getcourse = await Course.find();
+  const getcourse = await Course.find().sort({ createdAt: -1 });
   return getcourse;
 };
 
@@ -197,10 +197,13 @@ const getStudent = async (req) => {
         gender: 1,
         city: 1,
         state: 1,
-        country: 1
-
+        country: 1,
+        createdAt: 1
       },
     },
+    {
+      $sort: { createdAt: -1 }
+    }
   ]);
   return findAllStudents;
 };
@@ -311,8 +314,12 @@ const getplacement = async (req) => {
         jobdescription: 1,
         placements: '$placements',
         students: 1,
+        createdAt: 1
       },
     },
+    {
+      $sort: { createdAt: -1 }
+    }
   ]);
   return findAllplacements;
 };
