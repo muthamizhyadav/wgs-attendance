@@ -19,6 +19,10 @@ const createStudent = catchAsync(async (req, res) => {
   const data = await WhytapService.createStudent(req);
   res.send(data);
 });
+const getPlacedStudents = catchAsync(async (req, res) => {
+  const data = await WhytapService.getPlacedStudentsList(req);
+  res.send(data);
+});
 
 const createBatch = catchAsync(async (req, res) => {
   const data = await WhytapService.createBatch(req);
@@ -116,7 +120,7 @@ const getBatchStudents = catchAsync(async (req, res) => {
   res.send(data);
 })
 
-const getStudentBatchWiseChart = catchAsync(async(req, res)=>{
+const getStudentBatchWiseChart = catchAsync(async (req, res) => {
   const data = await WhytapService.getBatchStudentChart(req)
   res.send(data);
 })
@@ -145,5 +149,6 @@ module.exports = {
   deleteById_withMenu,
   getDashboardCounts,
   getBatchStudents,
-  getStudentBatchWiseChart
+  getStudentBatchWiseChart,
+  getPlacedStudents
 };

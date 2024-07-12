@@ -502,7 +502,11 @@ const DashboardCounts = async (req) => {
   const selectedStudents = await PlacementDetails.countDocuments({ status: "Selected" })
   const notSelectedStudents = await PlacementDetails.aggregate([{
     $match: {
-      status: { $ne: 'Selected' }
+      status: { $ne: 'Selected' },
+    }
+  }, {
+    $group: {
+      _id: "$studentId"
     }
   }])
   console.log(notSelectedStudents);
@@ -514,11 +518,132 @@ const DashboardCounts = async (req) => {
   };
 }
 
+const getPlacedStudentsList = async (req, res) => {
+  const placedStudents = await PlacementDetails.aggregate([
+    {
+      $match: { status: 'Selected' }
+    },
+    {
+      $lookup: {
+        from: "students",
+        localField: "studentId",
+        foreignField: "_id",
+        as: "studentDetails"
+      }
+    },
+    {
+      $unwind: { path: "$studentDetails", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $lookup: {
+        from: "batches",
+        localField: "studentDetails.batchId",
+        foreignField: "_id",
+        as: "batchDetails"
+      }
+    },
+    {
+      $unwind: { path: "$batchDetails", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "studentDetails.courseId",
+        foreignField: "_id",
+        as: "courseDetails"
+      }
+    },
+    {
+      $unwind: { path: "$courseDetails", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $lookup: {
+        from: "placements",
+        localField: "placementId",
+        foreignField: "_id",
+        as: "placementDetails"
+      }
+    },
+    {
+      $unwind: { path: "$placementDetails", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $lookup: {
+        from: "companies",
+        localField: "placementDetails.companyId",
+        foreignField: "_id",
+        as: "companyDetails"
+      }
+    },
+    {
+      $unwind: { path: "$companyDetails", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $project: {
+        _id: 1,
+        placementId: 1,
+        student_id: "$studentDetails._id",
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        companyName: "$companyDetails.companyname",
+        batchName: "$batchDetails.batchname",
+        courseName: "$courseDetails.coursename",
+        studentName:"$studentDetails.name"
+      }
+    }
+  ]);
+
+  return (placedStudents);
+};
+
+
 const getBatchStudents = async (req) => {
-  console.log(req.query.batchId)
-  const students = await Students.find({ batchId: req.query.batchId })
+  console.log(req.query.batchId);
+  const students = await Students.aggregate([
+    {
+      $match: { batchId: req.query.batchId }
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "courseId",
+        foreignField: "_id",
+        as: "course"
+      },
+    },
+    {
+      $unwind: { path: "$course", preserveNullAndEmptyArrays: true }
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        batchId: 1,
+        dob: 1,
+        gender: 1,
+        parentname: 1,
+        linkedinUrl: 1,
+        githubUrl: 1,
+        courseId: 1,
+        address: 1,
+        city: 1,
+        state: 1,
+        country: 1,
+        parentContact: 1,
+        status: 1,
+        active: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        coursename: "$course.coursename"
+      }
+    }
+  ]);
   return students;
-}
+};
+
 
 const getBatchStudentChart = async (req) => {
   console.log()
@@ -547,5 +672,6 @@ module.exports = {
   getCompany,
   DeleteDataWithIdandMenu,
   DashboardCounts,
-  getBatchStudents
+  getBatchStudents,
+  getPlacedStudentsList
 };
