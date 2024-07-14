@@ -23,6 +23,10 @@ const getPlacedStudents = catchAsync(async (req, res) => {
   const data = await WhytapService.getPlacedStudentsList(req);
   res.send(data);
 });
+const getUnPlacedStudents = catchAsync(async (req, res) => {
+  const data = await WhytapService.getUnPlacedStudentsList(req);
+  res.send(data);
+});
 
 const createBatch = catchAsync(async (req, res) => {
   const data = await WhytapService.createBatch(req);
@@ -150,5 +154,6 @@ module.exports = {
   getDashboardCounts,
   getBatchStudents,
   getStudentBatchWiseChart,
-  getPlacedStudents
+  getPlacedStudents,
+  getUnPlacedStudents
 };

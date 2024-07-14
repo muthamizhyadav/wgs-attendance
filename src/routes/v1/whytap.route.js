@@ -26,5 +26,6 @@ router.route('/dashboardCounts').get(WhyTapController.getDashboardCounts)
 router.route('/getbatchstudents').get(WhyTapController.getBatchStudents)
 // router.route('getStudentBatchWiseChart').get(WhyTapController.getStudentBatchWiseChart);
 router.route('/getPlacedCandidatesList').get(WhyTapController.getPlacedStudents);
+router.route('/getUnPlacedCandidatesList').get(WhyTapController.getUnPlacedStudents);
 
 module.exports = router;
