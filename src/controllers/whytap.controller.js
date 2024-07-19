@@ -42,6 +42,11 @@ const createCompany = catchAsync(async (req, res) => {
   res.send(data);
 })
 
+const deleteSelectedData = catchAsync(async (req, res) => {
+  const data = await WhytapService.deleteSelectedDatas(req)
+  res.send(data)
+})
+
 const getStudent = catchAsync(async (req, res) => {
   const data = await WhytapService.getStudent(req);
   res.send(data);
@@ -155,5 +160,6 @@ module.exports = {
   getBatchStudents,
   getStudentBatchWiseChart,
   getPlacedStudents,
-  getUnPlacedStudents
+  getUnPlacedStudents,
+  deleteSelectedData
 };

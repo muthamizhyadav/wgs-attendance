@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const mongoose = require('mongoose');
 const { locales } = require('validator/lib/isIBAN');
+require("../models/whytap.model");
 
 
 const createWhyTapAdmin = async (req) => {
@@ -309,7 +310,7 @@ const getplacement = async (req) => {
     {
       $project: {
         companyName: '$company.companyname',
-        location: '$company.location',
+        location: '$company.city',
         companyId: 1,
         interviewDate: 1,
         jobTitle: 1,
@@ -502,6 +503,7 @@ const DashboardCounts = async (req) => {
   const studentsNumber = await Students.countDocuments();
   const interviewNumbers = await Placement.countDocuments();
   const companyNumbers = await Company.countDocuments();
+  const batchNumbers = await Batch.countDocuments();
   const selectedStudents = await PlacementDetails.countDocuments({ status: "Selected" })
   // const notSelectedStudents = await PlacementDetails.aggregate([{
   //   $match: {
@@ -517,7 +519,8 @@ const DashboardCounts = async (req) => {
     studentNumber: studentsNumber,
     interviewNumbers: interviewNumbers,
     selectedStudents: selectedStudents,
-    companyNumbers: companyNumbers
+    companyNumbers: companyNumbers,
+    batchNumbers: batchNumbers
   };
 }
 
@@ -728,8 +731,66 @@ const getBatchStudents = async (req) => {
 };
 
 
-const getBatchStudentChart = async (req) => {
-  console.log()
+const getBatchStudentChart = async (req, res) => {
+  const batchId = req.params.batchId;
+  console.log(batchId)
+
+  try {
+    const placedStudentsBatchWise = await PlacementDetails.aggregate([
+      {
+        $lookup: {
+          from: 'students',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $unwind: '$student'
+      },
+      {
+        $match: {
+          'student.batchId': batchId
+        }
+      },
+      {
+        $group: {
+          _id: '$status',
+          value: { $sum: 1 }
+        }
+      },
+      {
+        $match: {
+          _id: { $ne: "Select an option" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          value: 1
+        }
+      }
+    ]);
+
+    return placedStudentsBatchWise;
+  } catch (error) {
+    console.error(error);
+    return "error";
+  }
+};
+
+
+const deleteSelectedDatas = async (req) => {
+  const { model, ids } = req.body;
+  try {
+    if (model === "Batch") {
+      const result = await Batch.deleteMany({ _id: { $in: ids } });
+      return result;
+    }
+  } catch (error) {
+    throw new Error(`Error deleting documents: ${error.message}`);
+  }
 }
 
 module.exports = {
@@ -757,5 +818,7 @@ module.exports = {
   DashboardCounts,
   getBatchStudents,
   getPlacedStudentsList,
-  getUnPlacedStudentsList
+  getUnPlacedStudentsList,
+  deleteSelectedDatas,
+  getBatchStudentChart
 };
