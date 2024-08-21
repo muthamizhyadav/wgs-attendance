@@ -3,6 +3,7 @@ const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
 const userValidation = require('../../validations/user.validation');
 const userController = require('../../controllers/user.controller');
+const { VerifyAuth } = require('../../middlewares/employerAuth');
 
 const router = express.Router();
 
@@ -16,6 +17,18 @@ router
   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+
+router.route('/get/heads').get(userController.getHeads);
+router.route('/leave/request').post(VerifyAuth, userController.LeaveRequest);
+router.route('/my/leave/request').get(VerifyAuth, userController.MyLeaveRequest);
+router.route('/head/request').get(VerifyAuth, userController.HeadRequests);
+router.route('/update/request/:id').put(VerifyAuth, userController.UpdateRequest);
+router.route('/get/details/forpay/slip').get(VerifyAuth, userController.getDetailsForPaySlip);
+router.route('/get/employer/leave/details').get(VerifyAuth, userController.getEmployerLeaveDetails);
+router.route('/get/leave/details').get(userController.leaveRequestsHR);
+router.route('/update/request/by/hr/:id').put(userController.UpdateRequestByHR);
+router.route('/getemployer/leavedetailsbyId/:id').get(userController.getEmployerLeaveDetailsById);
+router.route('/hr/leave/:id').post(userController.HrLeave)
 
 module.exports = router;
 

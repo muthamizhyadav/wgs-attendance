@@ -1,6 +1,6 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Employer, Attendance, CompOff, Permission } = require('../models/employer.model');
+const { Employer, Attendance, CompOff, Permission, Event } = require('../models/employer.model');
 const moment = require('moment');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const { aggregate } = require('../models/token.model');
@@ -60,7 +60,6 @@ const getAllEmployer = async (req) => {
     {
       $match: {
         $and: [deptSearch, nameSearch],
-        dateOfJoining: { $lte: date },
       },
     },
     {
@@ -522,23 +521,99 @@ const gettodayReportCounts = async (req) => {
   if (date && date != 'null' && date != '' && date != null) {
     today = date;
   }
+  console.log(today, 'TODAY');
+
   let values = await Attendance.aggregate([
-    { $match: { date: today } },
+    {
+      $match: {
+        $and: [
+          {
+            date: { $gte: today },
+          },
+          {
+            date: { $lte: today },
+          },
+        ],
+      },
+    },
     {
       $group: {
         _id: '$leavetype',
-        leaves: { $push: '$$ROOT' },
+        count: { $sum: 1 },
       },
     },
-    { $sort: { _id: 1 } },
+
+    {
+      $facet: {
+        originalData: [{ $project: { leavetype: '$_id', count: 1 } }],
+        allStatuses: [
+          {
+            $project: {
+              statuses: ['Casual Leave', 'Sick Leave', 'Work from home', 'Compoff'],
+            },
+          },
+        ],
+      },
+    },
     {
       $project: {
-        _id: 0,
-        name: '$_id',
-        counts: { $size: '$leaves' },
+        combined: {
+          $map: {
+            input: { $arrayElemAt: ['$allStatuses.statuses', 0] },
+            as: 'status',
+            in: {
+              status: '$$status',
+              count: {
+                $let: {
+                  vars: {
+                    matchingStatus: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: '$originalData',
+                            as: 'item',
+                            cond: { $eq: ['$$item.leavetype', '$$status'] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                  in: { $ifNull: ['$$matchingStatus.count', 0] },
+                },
+              },
+            },
+          },
+        },
       },
     },
   ]);
+  console.log(values, 'VAL');
+
+  let val = values[0].combined;
+
+  let counts;
+
+  if (val) {
+    const result = val.reduce((acc, item) => {
+      const key = item.status.replace(/\s+/g, '');
+      acc[key] = item.count;
+      return acc;
+    }, {});
+
+    counts = result;
+  } else {
+    counts = {
+      CasualLeave: 0,
+      Compoff: 0,
+      Halfday: 0,
+      Late: 0,
+      Permission: 0,
+      SickLeave: 0,
+      Workfromhome: 0,
+    };
+  }
+
   let employers = await Employer.find().count();
   let absentiesCalc = await Attendance.aggregate([
     {
@@ -546,7 +621,7 @@ const gettodayReportCounts = async (req) => {
     },
   ]);
   let absenties = absentiesCalc.length == 0 ? 0 : absentiesCalc.length;
-  return { values: values, employer: employers, present: employers - absenties };
+  return { values: counts, employer: employers, present: employers - absenties };
 };
 const getWeekoffById = async (req) => {
   let { id } = req.query;
@@ -768,6 +843,30 @@ const EmployerBulkUpload = async (req) => {
   }
 };
 
+const createEventsByHr = async (req) => {
+  let body = req.body;
+  let val = await Event.create(body);
+  return val;
+};
+
+const getEvents = async (req) => {
+  let values = await Event.aggregate([
+    {
+      $match: {
+        active: true,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        title: 1,
+        date: '$date',
+      },
+    },
+  ]);
+  return values;
+};
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -791,4 +890,6 @@ module.exports = {
   updatePermission,
   deletePermission,
   EmployerBulkUpload,
+  createEventsByHr,
+  getEvents,
 };

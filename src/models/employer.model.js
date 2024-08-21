@@ -13,6 +13,9 @@ const EmployerSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    headId: {
+      type: String,
+    },
     dateOfJoining: String,
     gender: String,
     designation: String,
@@ -50,6 +53,10 @@ const EmployerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    head: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -67,9 +74,25 @@ const EmployerAttendance = new mongoose.Schema(
     date: String,
     month: String,
     leave: Number,
+    toDate: {
+      type: String,
+    },
+    days: {
+      type: Number,
+    },
     active: {
       type: Boolean,
       default: true,
+    },
+    Status: {
+      type: String,
+      default: 'Pending',
+    },
+    headId: {
+      type: String,
+    },
+    LeaveBy: {
+      type: String,
     },
   },
   { timestamps: true }
@@ -119,14 +142,44 @@ const permissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const EventSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    title: {
+      type: String,
+    },
+    date: {
+      type: String,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    archive: {
+      type: Boolean,
+      default: false,
+    },
+    holiday: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
+
 const Employer = mongoose.model('employers', EmployerSchema);
 const Attendance = mongoose.model('attendance', EmployerAttendance);
 const CompOff = mongoose.model('compoff', compOffSchema);
 const Permission = mongoose.model('permission', permissionSchema);
+const Event = mongoose.model('events', EventSchema);
 
 module.exports = {
   Employer,
   Attendance,
   CompOff,
   Permission,
+  Event,
 };

@@ -38,4 +38,10 @@ router.route('/get/permission').post(EmployerController.getPermission);
 router.route('/delete/permission/:id').delete(EmployerController.deletePermission);
 router.route('/update/permission/:id').put(EmployerController.updatePermission);
 router.route('/bulk/upload/').post(EmployerUpload, EmployerController.EmployerBulkUpload);
+
+// Event End Points
+
+router.route('/event').post(EmployerController.createEventsByHr).get(EmployerController.getEvents);
+
+
 module.exports = router;

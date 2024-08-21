@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const EmployerService = require('../services/employer.service');
 const catchAsync = require('../utils/catchAsync');
+const { Employer } = require('../models/employer.model');
 
 const createEmployer = catchAsync(async (req, res) => {
   const data = await EmployerService.createEmployer(req);
@@ -104,6 +105,16 @@ const EmployerBulkUpload = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const createEventsByHr = catchAsync(async (req, res) => {
+  const data = await EmployerService.createEventsByHr(req);
+  res.send(data);
+});
+
+const getEvents = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEvents(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -127,4 +138,6 @@ module.exports = {
   updatePermission,
   deletePermission,
   EmployerBulkUpload,
+  createEventsByHr,
+  getEvents,
 };

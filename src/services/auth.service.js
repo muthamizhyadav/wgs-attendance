@@ -12,11 +12,30 @@ const { tokenTypes } = require('../config/tokens');
  * @returns {Promise<User>}
  */
 const loginUserWithEmailAndPassword = async (email, password) => {
-  const user = await userService.getUserByEmail(email);
-  if (!user || !(await user.isPasswordMatch(password))) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
+  const user = await userService.getUserByEmail(email, password);
+  console.log(user, 'LLLL');
+
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Employee not found")
   }
-  return user;
+
+
+  if (user.role) {
+    if (!user || !(await user.isPasswordMatch(password))) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
+    } else {
+      return user;
+    }
+  }
+  else{
+    let datas = {
+      email: user.email,
+      id: user._id,
+      name: user.empName,
+      role: user.head == true ? 'head' : 'staff',
+    };
+    return datas;
+  }
 };
 
 /**

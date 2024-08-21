@@ -34,10 +34,76 @@ const deleteUser = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getHeads = catchAsync(async (req, res) => {
+  const heads = await userService.getHeads(req);
+  res.send(heads);
+});
+
+const LeaveRequest = catchAsync(async (req, res) => {
+  const leaveRequest = await userService.LeaveRequest(req);
+  res.send(leaveRequest);
+});
+
+const MyLeaveRequest = catchAsync(async (req, res) => {
+  const data = await userService.MyLeaveRequest(req);
+  res.send(data);
+});
+
+const HeadRequests = catchAsync(async (req, res) => {
+  const data = await userService.HeadRequests(req);
+  res.send(data);
+});
+
+const UpdateRequest = catchAsync(async (req, res) => {
+  const data = await userService.UpdateRequest(req);
+  res.send(data);
+});
+
+const getDetailsForPaySlip = catchAsync(async (req, res) => {
+  const data = await userService.getDetailsForPaySlip(req);
+  res.send(data);
+});
+
+const getEmployerLeaveDetails = catchAsync(async (req, res) => {
+  const data = await userService.getEmployerLeaveDetails(req);
+  res.send(data);
+});
+
+const leaveRequestsHR = catchAsync(async (req, res) => {
+  const data = await userService.leaveRequestsHR(req);
+  res.send(data);
+});
+
+const UpdateRequestByHR = catchAsync(async (req, res) => {
+  const data = await userService.UpdateRequestByHR(req);
+  res.send(data);
+});
+
+const getEmployerLeaveDetailsById = catchAsync(async (req, res) => {
+  const data = await userService.getEmployerLeaveDetailsById(req);
+  res.send(data);
+});
+
+const HrLeave = catchAsync(async (req, res) => {
+  const data = await userService.HrLeave(req);
+  res.send(data);
+});
+
 module.exports = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  getHeads,
+  MyLeaveRequest,
+  LeaveRequest,
+  HeadRequests,
+  UpdateRequest,
+  getDetailsForPaySlip,
+  getEmployerLeaveDetails,
+  leaveRequestsHR,
+  UpdateRequestByHR,
+  getEmployerLeaveDetailsById,
+  HrLeave,
 };
