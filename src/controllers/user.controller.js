@@ -89,6 +89,16 @@ const HrLeave = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const updatePassword = catchAsync(async (req, res) => {
+  const data = await userService.updatePassword(req);
+  res.send(data);
+});
+
+const getUserProfile = catchAsync(async (req, res) => {
+  const data = await userService.getUserProfile(req);
+  res.send(data);
+});
+
 module.exports = {
   createUser,
   getUsers,
@@ -106,4 +116,6 @@ module.exports = {
   UpdateRequestByHR,
   getEmployerLeaveDetailsById,
   HrLeave,
+  updatePassword,
+  getUserProfile,
 };

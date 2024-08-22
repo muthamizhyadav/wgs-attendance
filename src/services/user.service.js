@@ -3,7 +3,7 @@ const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { Employer, Attendance } = require('../models/employer.model');
 const { payslip } = require('../utils/payslip.const');
-
+const bcrypt = require('bcryptjs');
 /**
  * Create a user
  * @param {Object} userBody
@@ -50,15 +50,21 @@ const getUserByEmail = async (email, password) => {
     return HR;
   } else {
     let staffOrHead = await Employer.findOne({ email });
-
     if (!staffOrHead) {
       throw new ApiError(httpStatus.BAD_REQUEST, "Inavalid credential's");
     }
-    let splitDOB = staffOrHead.dataOfBirth.split('.');
-    const joinedString = splitDOB.join(' ');
-    if (joinedString == password) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Inavalid password');
+    if (staffOrHead.passwordUpdated == true) {
+      if (staffOrHead.password != password) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Inavalid password');
+      }
+    } else {
+      let splitDOB = staffOrHead.dataOfBirth.split('.');
+      const joinedString = splitDOB.join(' ');
+      if (joinedString == password) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Inavalid password');
+      }
     }
+
     return staffOrHead;
   }
 };
@@ -636,8 +642,39 @@ const getEmployerLeaveDetailsById = async (req) => {
   }
 };
 
+const updatePassword = async (req) => {
+  let userId = req.userId;
+  let body = req.body;
 
+  let findAlredyExist = await User.findById(userId);
+  let findEmployer = await Employer.findById(userId);
 
+  if (findAlredyExist) {
+    let hashing = await bcrypt.hash(body.password, 8);
+    findAlredyExist = await User.findByIdAndUpdate({ _id: userId }, { password: hashing }, { new: true });
+    return findAlredyExist;
+  } else {
+    if (!findEmployer) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'not found');
+    } else {
+      findEmployer = await Employer.findByIdAndUpdate(
+        { _id: userId },
+        { passwordUpdated: true, password: body.password },
+        { new: true }
+      );
+      return findEmployer;
+    }
+  }
+};
+
+const getUserProfile = async (req) => {
+  let userId = req.userId;
+  let findEmployee = await Employer.findById(userId);
+  if (!findEmployee) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Failed');
+  }
+  return findEmployee;
+};
 
 module.exports = {
   createUser,
@@ -657,4 +694,6 @@ module.exports = {
   UpdateRequestByHR,
   getEmployerLeaveDetailsById,
   HrLeave,
+  updatePassword,
+  getUserProfile,
 };

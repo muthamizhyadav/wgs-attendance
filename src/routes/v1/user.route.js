@@ -28,7 +28,9 @@ router.route('/get/employer/leave/details').get(VerifyAuth, userController.getEm
 router.route('/get/leave/details').get(userController.leaveRequestsHR);
 router.route('/update/request/by/hr/:id').put(userController.UpdateRequestByHR);
 router.route('/getemployer/leavedetailsbyId/:id').get(userController.getEmployerLeaveDetailsById);
-router.route('/hr/leave/:id').post(userController.HrLeave)
+router.route('/hr/leave/:id').post(userController.HrLeave);
+router.route('/update/Password').post(VerifyAuth, userController.updatePassword);
+router.route('/employer/profile').get(VerifyAuth, userController.getUserProfile);
 
 module.exports = router;
 

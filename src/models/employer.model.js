@@ -57,6 +57,14 @@ const EmployerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    passwordUpdated: {
+      type: Boolean,
+      default: false,
+    },
+    password: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

@@ -78,6 +78,20 @@ const getAllEmployer = async (req) => {
       },
     },
     {
+      $lookup: {
+        from: 'employers',
+        localField: 'headId',
+        foreignField: '_id',
+        as: 'headDetails',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$headDetails',
+      },
+    },
+    {
       $project: {
         _id: 1,
         attendanceId: { $ifNull: ['$attendance._id', null] },
@@ -91,7 +105,7 @@ const getAllEmployer = async (req) => {
         dateOfJoining: 1,
         designation: 1,
         department: 1,
-        head: 1,
+        head: { $ifNull: ['$headDetails.empName', 'Not assigned'] },
       },
     },
   ]);

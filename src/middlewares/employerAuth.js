@@ -8,14 +8,12 @@ const VerifyAuth = async (req, res, next) => {
   if (typeof BearerHeader != undefined) {
     const bearer = BearerHeader.split(' ');
     const token = bearer[1];
-    console.log(token,"asasd");
     
     if (!token) {
       return res.send(httpStatus.UNAUTHORIZED, 'user must be LoggedIn....');
     }
     try {
       const payload = jwt.verify(token, config.jwt.secret);
-      console.log(payload,"PPPPpp");
       
       let finAdmin = await Employer.findById(payload.sub);
       if (!finAdmin) {
