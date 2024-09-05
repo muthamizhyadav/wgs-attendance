@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { Employer, Attendance } = require('../models/employer.model');
+const { Employer, Attendance, Event } = require('../models/employer.model');
 const { payslip } = require('../utils/payslip.const');
 const bcrypt = require('bcryptjs');
 /**
@@ -378,7 +378,7 @@ const UpdateRequest = async (req) => {
   if (!findAttendanceById) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Attendace not found');
   }
-
+  await Event.create({ userId: findAttendanceById.empId, title: findAttendanceById.leavetype, date: findAttendanceById.date });
   findAttendanceById = await Attendance.findByIdAndUpdate({ _id: id }, update, { new: true });
   return findAttendanceById;
 
@@ -551,9 +551,9 @@ const UpdateRequestByHR = async (req) => {
   if (!findAttendanceById) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Attendace not found');
   }
+  await Event.create({ userId: findAttendanceById.empId, title: findAttendanceById.leavetype, date: findAttendanceById.date });
   findAttendanceById = await Attendance.findByIdAndUpdate({ _id: id }, update, { new: true });
   return findAttendanceById;
-
   // LeaveBy
 };
 

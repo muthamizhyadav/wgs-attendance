@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const EmployerController = require('../../controllers/employer.controller');
 const multer = require('multer');
+const { VerifyAuth } = require('../../middlewares/employerAuth');
 
 const storage = multer.memoryStorage({
   destination: function (req, res, callback) {
@@ -41,7 +42,19 @@ router.route('/bulk/upload/').post(EmployerUpload, EmployerController.EmployerBu
 
 // Event End Points
 
-router.route('/event').post(EmployerController.createEventsByHr).get(EmployerController.getEvents);
+router.route('/event').post(EmployerController.createEventsByHr).get(VerifyAuth, EmployerController.getEvents);
+router.route('/all/events/hr').get(EmployerController.getEventsForHr);
+// Announcement
 
+router.route('/announcement').post(EmployerController.createAnnouncement).get(EmployerController.getAnnouncement);
+router.route('/announcement/staff').get(EmployerController.getAnnouncementStaff);
 
+// assets
+
+router.route('/create/new/assets').post(EmployerController.createNewAssets);
+router.route('/get/assets/bycategory').get(EmployerController.getAssetsBycategory);
+router.route('/assign/assets').post(EmployerController.assignAssets);
+router.route('/un/assigned/:id').delete(EmployerController.UnAssigned);
+router.route('/update/assets/byid/:id').put(EmployerController.updateAssetsById);
+router.route('/get/assets/counds/bycategory').get(EmployerController.getAssetsCoundsByCategory);
 module.exports = router;

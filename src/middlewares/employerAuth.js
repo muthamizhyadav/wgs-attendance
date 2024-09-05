@@ -8,13 +8,13 @@ const VerifyAuth = async (req, res, next) => {
   if (typeof BearerHeader != undefined) {
     const bearer = BearerHeader.split(' ');
     const token = bearer[1];
-    
+
     if (!token) {
       return res.send(httpStatus.UNAUTHORIZED, 'user must be LoggedIn....');
     }
     try {
       const payload = jwt.verify(token, config.jwt.secret);
-      
+
       let finAdmin = await Employer.findById(payload.sub);
       if (!finAdmin) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Envalid User');

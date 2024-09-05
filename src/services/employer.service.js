@@ -1,12 +1,22 @@
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
-const { Employer, Attendance, CompOff, Permission, Event } = require('../models/employer.model');
+const {
+  Employer,
+  Attendance,
+  CompOff,
+  Permission,
+  Event,
+  Announcement,
+  Assets,
+  AssetsAssigned,
+} = require('../models/employer.model');
 const moment = require('moment');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const { aggregate } = require('../models/token.model');
 const { log } = require('winston');
 const { Console } = require('winston/lib/winston/transports');
 const xlsx = require('xlsx');
+const { defaultCounts } = require('../utils/constants');
 
 const createEmployer = async (req) => {
   let body = req.body;
@@ -864,10 +874,48 @@ const createEventsByHr = async (req) => {
 };
 
 const getEvents = async (req) => {
+  let userId = req.userId;
   let values = await Event.aggregate([
     {
       $match: {
-        active: true,
+        userId: { $eq: null },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        title: 1,
+        date: '$date',
+      },
+    },
+  ]);
+
+  let values2 = await Event.aggregate([
+    {
+      $match: {
+        userId: { $eq: userId },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        title: 1,
+        date: '$date',
+      },
+    },
+  ]);
+
+  let datas = values.concat(values2);
+
+  return datas;
+};
+
+const getEventsForHr = async (req) => {
+  let userId = req.userId;
+  let values = await Event.aggregate([
+    {
+      $match: {
+        userId: { $eq: null },
       },
     },
     {
@@ -879,6 +927,221 @@ const getEvents = async (req) => {
     },
   ]);
   return values;
+};
+
+const createAnnouncement = async (req) => {
+  const body = req.body;
+  const creation = await Announcement.create(body);
+  return creation;
+};
+
+const getAnnouncement = async (req) => {
+  const { type } = req.query;
+  let typeMatch = {
+    _id: { $ne: null },
+  };
+
+  if (type == 'all') {
+    typeMatch = typeMatch;
+  } else {
+    typeMatch = {
+      Type: type,
+    };
+  }
+
+  let values = await Announcement.aggregate([
+    {
+      $match: {
+        $and: [typeMatch],
+      },
+    },
+  ]);
+  return values;
+};
+
+const getAnnouncementStaff = async (req) => {
+  let values = await Announcement.aggregate([
+    {
+      $match: {
+        _id: {
+          $ne: null,
+        },
+      },
+    },
+  ]);
+  return values;
+};
+
+// Assets
+
+const createNewAssets = async (req) => {
+  const data = await Assets.create(req.body);
+  return data;
+};
+
+const getAssetsBycategory = async (req) => {
+  const { type } = req.query;
+  let values = await Assets.aggregate([
+    {
+      $match: {
+        category: type,
+      },
+    },
+    {
+      $lookup: {
+        from: 'assetsassigneds',
+        localField: '_id',
+        foreignField: 'assetId',
+        pipeline: [
+          {
+            $addFields: {
+              AssigneddDate: {
+                $dateToString: {
+                  format: '%Y/%m/%d',
+                  date: '$createdAt',
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'employers',
+              localField: 'empId',
+              foreignField: '_id',
+              as: 'employer',
+            },
+          },
+          {
+            $unwind: {
+              preserveNullAndEmptyArrays: true,
+              path: '$employer',
+            },
+          },
+          {
+            $project: {
+              AssigneddDate: 1,
+              empId: 1,
+              assetId: 1,
+              empName: '$employer.empName',
+              EmployeeId: '$employer.empId',
+              department: '$employer.department',
+              active: '$employer.active',
+            },
+          },
+        ],
+        as: 'Assigned',
+      },
+    },
+  ]);
+
+  let getemployee = await Employer.find({ active: true });
+
+  return { values, employee: getemployee };
+};
+
+const assignAssets = async (req) => {
+  const data = await AssetsAssigned.create(req.body);
+  return data;
+};
+
+const UnAssigned = async (req) => {
+  let id = req.params.id;
+  await AssetsAssigned.findByIdAndDelete(id);
+  return { message: 'Deleted' };
+};
+
+const updateAssetsById = async (req) => {
+  let id = req.params.id;
+  let findAssets = await Assets.findById(id);
+  if (!findAssets) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Asset not found');
+  }
+  findAssets = await Assets.findByIdAndUpdate({ _id: id }, req.body, { new: true });
+  return findAssets;
+};
+
+const getAssetsCoundsByCategory = async () => {
+  let values = await Assets.aggregate([
+    {
+      $group: {
+        _id: '$category',
+        count: { $sum: 1 },
+      },
+    },
+
+    {
+      $facet: {
+        originalData: [{ $project: { leavetype: '$_id', count: 1 } }],
+        allStatuses: [
+          {
+            $project: {
+              statuses: [
+                'Mobile Phones',
+                'Desktop & Laptops',
+                'Sim Cards',
+                'Printers, Scanners',
+                'Hard Drives, USB Drives',
+                'Projectors, Screens',
+                'Pens, Pencils, Markers',
+                'Notebooks, Legal Pads',
+                'Scissors,Staplers, Staples',
+                'Desk Organizers, Chairs',
+                'Office Desks, Chairs',
+                'Filing Cabinets, Storage Units',
+                'Conference Tables, Chairs',
+                'Shelves, Bookcases',
+                'Reception Desks, Waiting Area Chairs',
+                'Whiteboards, Bulletin Boards',
+                'First Aid Kits',
+                'Fire Extinguishers',
+                'Hand Sanitizers, Disinfectant Wipes',
+                'Face Masks, Gloves',
+                'Air Purifiers',
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        combined: {
+          $map: {
+            input: { $arrayElemAt: ['$allStatuses.statuses', 0] },
+            as: 'status',
+            in: {
+              status: '$$status',
+              count: {
+                $let: {
+                  vars: {
+                    matchingStatus: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: '$originalData',
+                            as: 'item',
+                            cond: { $eq: ['$$item.leavetype', '$$status'] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                  in: { $ifNull: ['$$matchingStatus.count', 0] },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ]);
+
+  if (values == null) {
+    return defaultCounts;
+  } else {
+    return values[0].combined;
+  }
 };
 
 module.exports = {
@@ -906,4 +1169,14 @@ module.exports = {
   EmployerBulkUpload,
   createEventsByHr,
   getEvents,
+  createAnnouncement,
+  getAnnouncement,
+  getAnnouncementStaff,
+  getEventsForHr,
+  createNewAssets,
+  getAssetsBycategory,
+  assignAssets,
+  UnAssigned,
+  updateAssetsById,
+  getAssetsCoundsByCategory,
 };

@@ -174,6 +174,113 @@ const EventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    userId: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+
+const AnnouncementSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    title: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+    fromDate: {
+      type: String,
+    },
+    toDate: {
+      type: String,
+    },
+    fromTime: {
+      type: String,
+    },
+    toTime: {
+      type: String,
+    },
+    Type: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+
+const AssetsSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    assetName: {
+      type: String,
+    },
+    qty: {
+      type: Number,
+    },
+    model: {
+      type: String,
+    },
+    serialNumber: {
+      type: String,
+    },
+    purchaseDate: {
+      type: String,
+    },
+    expiryDate: {
+      type: String,
+    },
+    price: {
+      type: Number,
+    },
+    category: {
+      type: String,
+    },
+    vendor: {
+      type: String,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    archive: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
+
+const AssetsAssignSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    assetId: {
+      type: String,
+    },
+    empId: {
+      type: String,
+    },
+    assigned: {
+      type: Boolean,
+      default: true,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    archive: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -183,6 +290,9 @@ const Attendance = mongoose.model('attendance', EmployerAttendance);
 const CompOff = mongoose.model('compoff', compOffSchema);
 const Permission = mongoose.model('permission', permissionSchema);
 const Event = mongoose.model('events', EventSchema);
+const Announcement = mongoose.model('announcement', AnnouncementSchema);
+const Assets = mongoose.model('assets', AssetsSchema);
+const AssetsAssigned = mongoose.model('assetsassigned', AssetsAssignSchema);
 
 module.exports = {
   Employer,
@@ -190,4 +300,7 @@ module.exports = {
   CompOff,
   Permission,
   Event,
+  Announcement,
+  Assets,
+  AssetsAssigned,
 };

@@ -115,6 +115,56 @@ const getEvents = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const createAnnouncement = catchAsync(async (req, res) => {
+  const data = await EmployerService.createAnnouncement(req);
+  res.send(data);
+});
+
+const getAnnouncement = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAnnouncement(req);
+  res.send(data);
+});
+
+const getAnnouncementStaff = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAnnouncementStaff(req);
+  res.send(data);
+});
+
+const getEventsForHr = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEventsForHr(req);
+  res.send(data);
+});
+
+const createNewAssets = catchAsync(async (req, res) => {
+  const data = await EmployerService.createNewAssets(req);
+  res.send(data);
+});
+
+const getAssetsBycategory = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAssetsBycategory(req);
+  res.send(data);
+});
+
+const assignAssets = catchAsync(async (req, res) => {
+  const data = await EmployerService.assignAssets(req);
+  res.send(data);
+});
+
+const UnAssigned = catchAsync(async (req, res) => {
+  const data = await EmployerService.UnAssigned(req);
+  res.send(data);
+});
+
+const updateAssetsById = catchAsync(async (req, res) => {
+  const data = await EmployerService.updateAssetsById(req);
+  res.send(data);
+});
+
+const getAssetsCoundsByCategory = catchAsync(async (req, res) => {
+  const data = await EmployerService.getAssetsCoundsByCategory(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -140,4 +190,14 @@ module.exports = {
   EmployerBulkUpload,
   createEventsByHr,
   getEvents,
+  createAnnouncement,
+  getAnnouncement,
+  getAnnouncementStaff,
+  getEventsForHr,
+  getAssetsBycategory,
+  createNewAssets,
+  assignAssets,
+  UnAssigned,
+  updateAssetsById,
+  getAssetsCoundsByCategory,
 };
