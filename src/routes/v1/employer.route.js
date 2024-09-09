@@ -57,4 +57,12 @@ router.route('/assign/assets').post(EmployerController.assignAssets);
 router.route('/un/assigned/:id').delete(EmployerController.UnAssigned);
 router.route('/update/assets/byid/:id').put(EmployerController.updateAssetsById);
 router.route('/get/assets/counds/bycategory').get(EmployerController.getAssetsCoundsByCategory);
+
+// Bank details
+
+router.route('/create/bank/details').post(EmployerController.createBankDetails)
+router.route('/employers/list').get(EmployerController.getEmployerLists)
+router.route('/get/bank/details').get(EmployerController.getBankDetails)
+
+// 
 module.exports = router;

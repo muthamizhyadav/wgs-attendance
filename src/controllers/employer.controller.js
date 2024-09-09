@@ -165,6 +165,21 @@ const getAssetsCoundsByCategory = catchAsync(async (req, res) => {
   res.send(data);
 });
 
+const createBankDetails = catchAsync(async (req, res) => {
+  const data = await EmployerService.createBankDetails(req);
+  res.send(data);
+});
+
+const getEmployerLists = catchAsync(async (req, res) => {
+  const data = await EmployerService.getEmployerLists(req);
+  res.send(data);
+});
+
+const getBankDetails = catchAsync(async (req, res) => {
+  const data = await EmployerService.getBankDetails(req);
+  res.send(data);
+});
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -200,4 +215,7 @@ module.exports = {
   UnAssigned,
   updateAssetsById,
   getAssetsCoundsByCategory,
+  createBankDetails,
+  getEmployerLists,
+  getBankDetails,
 };

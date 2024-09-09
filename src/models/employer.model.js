@@ -285,6 +285,42 @@ const AssetsAssignSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const BankDetailsSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: v4,
+    },
+    employerId: {
+      type: String,
+    },
+    bankName: {
+      type: String,
+    },
+    account: {
+      type: String,
+    },
+    ifsc: {
+      type: String,
+    },
+    accountType: {
+      type: String,
+    },
+    branchName: {
+      type: String,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    archive: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
+
 const Employer = mongoose.model('employers', EmployerSchema);
 const Attendance = mongoose.model('attendance', EmployerAttendance);
 const CompOff = mongoose.model('compoff', compOffSchema);
@@ -293,6 +329,7 @@ const Event = mongoose.model('events', EventSchema);
 const Announcement = mongoose.model('announcement', AnnouncementSchema);
 const Assets = mongoose.model('assets', AssetsSchema);
 const AssetsAssigned = mongoose.model('assetsassigned', AssetsAssignSchema);
+const BankDetail = mongoose.model('bankdetails', BankDetailsSchema);
 
 module.exports = {
   Employer,
@@ -303,4 +340,5 @@ module.exports = {
   Announcement,
   Assets,
   AssetsAssigned,
+  BankDetail,
 };

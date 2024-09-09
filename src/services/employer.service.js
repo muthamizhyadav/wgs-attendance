@@ -9,6 +9,7 @@ const {
   Announcement,
   Assets,
   AssetsAssigned,
+  BankDetail,
 } = require('../models/employer.model');
 const moment = require('moment');
 const { pipeline } = require('nodemailer/lib/xoauth2');
@@ -1144,6 +1145,58 @@ const getAssetsCoundsByCategory = async () => {
   }
 };
 
+const createBankDetails = async (req) => {
+  let creation = await BankDetail.create(req.body);
+  return creation;
+};
+
+const getEmployerLists = async (req) => {
+  let employers = await Employer.aggregate([
+    {
+      $match: {
+        active: true,
+      },
+    },
+  ]);
+  return employers;
+};
+
+const getBankDetails = async (req) => {
+  let getbanks = await BankDetail.aggregate([
+    {
+      $lookup: {
+        from: 'employers',
+        localField: 'employerId',
+        foreignField: '_id',
+        as: 'employer',
+      },
+    },
+    {
+      $unwind: {
+        preserveNullAndEmptyArrays: true,
+        path: '$employer',
+      },
+    },  
+    {
+      $project: {
+        account: 1,
+        accountType: 1,
+        active: 1,
+        archive: 1,
+        bankName: 1,
+        branchName: 1,
+        employerId: 1,
+        ifsc: 1,
+        updatedAt: 1,
+        _id: 1,
+        empName: '$employer.empName',
+        empId: '$employer.empId',
+      },
+    },
+  ]);
+  return getbanks;
+};
+
 module.exports = {
   createEmployer,
   getAllEmployer,
@@ -1179,4 +1232,7 @@ module.exports = {
   UnAssigned,
   updateAssetsById,
   getAssetsCoundsByCategory,
+  createBankDetails,
+  getEmployerLists,
+  getBankDetails,
 };
